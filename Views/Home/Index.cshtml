@@ -1,0 +1,506 @@
+﻿@model FeelShare.Web.ViewModels.HomeIndexVM
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Как ты себя чувствуешь?";
+    var isAuth = User?.Identity?.IsAuthenticated ?? false;
+
+    // Один раз читаем sid (для подсветки конкретной истории)
+    var sid = Context.Request.Query["sid"].ToString();
+
+    // Список реакций (общий, чтобы не объявлять внутри foreach)
+    var reactionList = new[] {
+        new { key="heart", emoji="❤️" , text=""},
+        new { key="hug",   emoji="🤗" , text=""},
+        new { key="smile", emoji="😊", text="" },
+        new { key="wow",   emoji="😮", text="" },
+        new { key="up",    emoji="💪", text="" },
+    };
+}
+
+@section Styles {
+    <style>
+        :root {
+            --ink: #0f172a;
+            --muted: #64748b;
+            --border: #e5e7eb;
+            --soft: #f8fafc;
+            --card: #ffffff;
+            --g1: #6366f1;
+            --g2: #06b6d4;
+            --g3: #22c55e;
+            --shadow: 0 12px 30px rgba(2,6,23,.08);
+        }
+
+        .hero {
+            border-radius: 22px;
+            padding: 28px 22px;
+            margin-bottom: 18px;
+            color: #fff;
+            background: radial-gradient(1000px 520px at 100% -20%, rgba(255,255,255,.18), transparent 60%), linear-gradient(135deg, var(--g1), var(--g2) 60%, var(--g3));
+            box-shadow: var(--shadow);
+        }
+
+            .hero .title {
+                font-weight: 800;
+                letter-spacing: .2px;
+                margin: 0
+            }
+
+            .hero .sub {
+                opacity: .92;
+                margin: .35rem 0 0
+            }
+
+        /* Карточки эмоций */
+        .emo-card {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--card);
+            transition: transform .12s ease, box-shadow .2s ease, border-color .2s ease;
+            text-align: center;
+            padding: 18px 10px;
+            height: 100%;
+            box-shadow: var(--shadow);
+        }
+
+            .emo-card:hover {
+                transform: translateY(-2px);
+                border-color: #c7d2fe;
+                box-shadow: 0 16px 28px rgba(99,102,241,.15);
+            }
+
+        .emo-ico {
+            font-size: 42px
+        }
+
+        .emo-name {
+            margin-top: 6px;
+            font-weight: 600;
+            color: #111827
+        }
+
+        /* Карточки историй */
+        .story {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--card);
+            box-shadow: var(--shadow);
+        }
+
+            .story.highlight {
+                border-color: #60a5fa;
+                box-shadow: 0 12px 30px rgba(59,130,246,.2);
+            }
+
+            .story .meta {
+                color: var(--muted);
+            }
+
+            .story .text {
+                white-space: pre-wrap;
+            }
+
+        /* Кнопки реакций */
+        .rx-btn {
+            border-radius: 999px;
+        }
+
+            .rx-btn.btn-outline-primary {
+                border-color: #c7d2fe
+            }
+
+            .rx-btn .badge {
+                border-radius: 10px;
+            }
+
+        /* Фильтр чипсы */
+        .chips .btn {
+            border-radius: 999px;
+        }
+
+        /* Блок формы публикации истории — просто выровнять внешне */
+        .share-card {
+            border: 1px dashed var(--border);
+            background: var(--soft);
+            border-radius: 16px;
+        }
+    </style>
+}
+
+
+
+
+<!-- HERO -->
+<section class="hero mb-3">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+            <h1 class="h3 title">@ViewData["Title"]</h1>
+            <p class="sub">Выбери эмоцию, поделись историей анонимно и поддержи других реакциями 💜</p>
+        </div>
+    </div>
+</section>
+
+<!-- Карточки эмоций -->
+@if (Model.Moods == null || !Model.Moods.Any())
+{
+    <div class="alert alert-warning">Эмоции пока не добавлены.</div>
+}
+else
+{
+    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 g-3 mb-4">
+        @foreach (var m in Model.Moods)
+        {
+            <div class="col">
+                <a class="text-decoration-none" asp-controller="Home" asp-action="Emotion" asp-route-slug="@m.Slug">
+                    <div class="emo-card">
+                        <div class="emo-ico">@m.Icon</div>
+                        <div class="emo-name">@m.Name</div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+}
+
+<!-- Публикация анонимной истории -->
+<div class="share-card p-3 mb-4">
+    @await Html.PartialAsync("_CreateStoryForm",
+            new FeelShare.Web.ViewModels.CreateStoryVM
+    {
+        Moods = Model.Moods,
+        SelectedEmotionId = Model.SelectedEmotionId,
+        ReturnUrl = Url.Action("Index", "Home", new { emotionId = Model.SelectedEmotionId })
+    })
+</div>
+
+<!-- Фильтр по эмоциям -->
+<div class="mb-3 chips">
+    <div class="btn-group" role="group">
+        <a class="btn btn-outline-secondary @(Model.SelectedEmotionId == null ? "active" : "")"
+           asp-action="Index">Все</a>
+        @foreach (var m in Model.Moods)
+        {
+            <a class="btn btn-outline-secondary @(Model.SelectedEmotionId == m.Id ? "active" : "")"
+               asp-action="Index" asp-route-emotionId="@m.Id">@m.Icon @m.Name</a>
+        }
+    </div>
+</div>
+
+<!-- Лента историй -->
+@if (Model.Stories == null || !Model.Stories.Any())
+{
+    <div class="alert alert-info">Историй пока нет. Будьте первым!</div>
+}
+else
+{
+    <div class="vstack gap-3">
+        @foreach (var s in Model.Stories)
+        {
+            <div id="s-@s.Id" class="story card @(sid == s.Id.ToString() ? "highlight" : "")">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2 meta">
+                        <div class="small">@s.EmotionIcon @s.EmotionName</div>
+                        <div class="small">@s.CreatedAtUtc.ToLocalTime().ToString("g")</div>
+                    </div>
+
+                    <div class="text" style="white-space:pre-wrap">@s.Content</div>
+
+                    <div class="mt-3 d-flex align-items-center gap-2 flex-wrap">
+                        @foreach (var r in reactionList)
+                        {
+                            var isOn = s.MyReactions != null && s.MyReactions.Contains(r.key);
+                            var btn = isOn ? "btn-primary" : "btn-outline-primary";
+                            var cnt = (s.ReactionCounts != null && s.ReactionCounts.TryGetValue(r.key, out var tmp)) ? tmp : 0;
+
+                            <form method="post"
+                                  asp-route="StoryReactToggle"
+                                  asp-route-id="@s.Id"
+                                  asp-route-reaction="@r.key"
+                                  class="d-inline js-react-form"
+                                  data-story="@s.Id" data-key="@r.key">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm @btn js-react-btn">
+                                    @r.emoji @r.text
+                                    <span class="badge ms-1 js-count">@cnt</span>
+                                </button>
+                            </form>
+                        }
+
+                        <span class="text-muted small ms-2 js-cmt-counter" data-count="@s.CommentsCount">
+                            💬 @s.CommentsCount
+                        </span>
+                    </div>
+
+                    <hr class="my-3" />
+
+                    <!-- Комментарии -->
+                    <div id="c-@s.Id" class="vstack gap-2">
+                        @await Html.PartialAsync("_CommentsChunk", s.LatestComments)
+                    </div>
+
+                    @if (s.CommentsCount > (s.LatestComments?.Count ?? 0))
+                    {
+                        <button type="button"
+                                class="btn btn-link btn-sm js-more-comments"
+                                data-story="@s.Id"
+                                data-loaded="@(s.LatestComments?.Count ?? 0)"
+                                data-total="@s.CommentsCount">
+                            Показать ещё
+                        </button>
+                    }
+
+                    <div class="mt-2">
+                        @if (isAuth)
+                        {
+                            <form method="post"
+                                  asp-route="StoryCommentCreate"
+                                  asp-route-id="@s.Id"
+                                  class="js-comment-form"
+                                  data-story="@s.Id">
+                                @Html.AntiForgeryToken()
+                                <div class="input-group">
+                                    <input name="content" class="form-control" placeholder="Написать комментарий…" maxlength="4000" required />
+                                    <button class="btn btn-outline-primary" type="submit">Отправить</button>
+                                </div>
+                            </form>
+                        }
+                        else
+                        {
+                            <a class="btn btn-sm btn-outline-secondary"
+                               asp-controller="Account" asp-action="Login" asp-route-returnUrl="/">Войдите, чтобы комментировать</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (Model.HasMore)
+    {
+        <div class="mt-3">
+            <a class="btn btn-outline-secondary"
+               asp-action="Index"
+               asp-route-emotionId="@Model.SelectedEmotionId"
+               asp-route-page="@(Model.Page + 1)">Загрузить ещё</a>
+        </div>
+    }
+}
+
+@* ===== МОДАЛКИ — важное: отрисовываются как секция, а не внутри main ===== *@
+@section Modals {
+    <div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Нужно войти</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    Чтобы поставить реакцию или оставить комментарий, войдите в аккаунт.
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-primary"
+                       asp-controller="Account" asp-action="Login"
+                       asp-route-returnUrl="@Context.Request.Path@Context.Request.QueryString">Войти</a>
+                    <a class="btn btn-outline-primary"
+                       asp-controller="Account" asp-action="Register"
+                       asp-route-returnUrl="@Context.Request.Path@Context.Request.QueryString">Зарегистрироваться</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        (() => {
+            // Единственный экземпляр модалки "Войти"
+            const authModalEl = document.getElementById('authModal');
+            const authModal = authModalEl ? new bootstrap.Modal(authModalEl, { backdrop: true, focus: true }) : null;
+
+            const isAuth = @(User?.Identity?.IsAuthenticated ?? false ? "true" : "false");
+
+            // Вспомогательное: токен AntiForgery из формы (лежит в скрытом поле)
+            function getToken(form) {
+                const i = form.querySelector('input[name="__RequestVerificationToken"]');
+                return i ? i.value : null;
+            }
+
+            // ===== REACT (AJAX) =====
+            document.addEventListener('submit', async (e) => {
+                const form = e.target.closest('.js-react-form');
+                if (!form) return;
+                e.preventDefault();
+
+                if (!isAuth) { authModal?.show(); return; }
+
+                const btn = form.querySelector('.js-react-btn');
+                const storyId = form.dataset.story;
+                btn.disabled = true;
+
+                try {
+                    const resp = await fetch(form.action, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        body: new FormData(form),
+                        credentials: 'same-origin'
+                    });
+
+                    if (resp.status === 401) { authModal?.show(); return; }
+                    if (!resp.ok) throw new Error();
+
+                    const data = await resp.json(); // { ok, counts, my }
+                    const scope = document.querySelector(`#s-${storyId}`) || document;
+
+                    scope.querySelectorAll(`.js-react-form[data-story="${storyId}"]`).forEach(f => {
+                        const key = f.dataset.key;
+                        const b = f.querySelector('.js-react-btn');
+                        const cnt = f.querySelector('.js-count');
+                        cnt.textContent = (data.counts && data.counts[key]) ? data.counts[key] : 0;
+
+                        if (data.my && data.my.includes(key)) {
+                            b.classList.remove('btn-outline-primary'); b.classList.add('btn-primary');
+                        } else {
+                            b.classList.remove('btn-primary'); b.classList.add('btn-outline-primary');
+                        }
+                    });
+                } catch {
+                    console.warn('Reaction failed');
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+
+            // ===== ADD COMMENT (AJAX) =====
+            document.addEventListener('submit', async (e) => {
+                const form = e.target.closest('.js-comment-form');
+                if (!form) return;
+                e.preventDefault();
+
+                if (!isAuth) { authModal?.show(); return; }
+
+                const btn = form.querySelector('button[type="submit"]');
+                const input = form.querySelector('input[name="content"]');
+                if (!input.value.trim()) return;
+
+                btn.disabled = true;
+
+                try {
+                    const resp = await fetch(form.action, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        body: new FormData(form),
+                        credentials: 'same-origin'
+                    });
+
+                    if (resp.status === 401) { authModal?.show(); return; }
+                    if (resp.status === 400) { return; } // пустой текст
+                    if (!resp.ok) throw new Error();
+
+                    const html = await resp.text(); // partial с 1 комментом
+                    const storyId = form.dataset.story;
+                    const cont = document.getElementById(`c-${storyId}`);
+                    cont.insertAdjacentHTML('afterbegin', html);
+                    input.value = "";
+
+                    // локально обновим счётчик 💬
+                    const counter = document.querySelector(`#s-${storyId} .js-cmt-counter`);
+                    if (counter) {
+                        const n = parseInt(counter.dataset.count || '0', 10) + 1;
+                        counter.dataset.count = String(n);
+                        counter.textContent = `💬 ${n}`;
+                    }
+                } catch {
+                    console.warn('Comment failed');
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+
+            // ===== LOAD MORE COMMENTS (AJAX) =====
+            document.addEventListener('click', async (e) => {
+                const btn = e.target.closest('.js-more-comments');
+                if (!btn) return;
+
+                const storyId = btn.dataset.story;
+                let loaded = parseInt(btn.dataset.loaded || '0', 10);
+                const total = parseInt(btn.dataset.total || '0', 10);
+                const take = 5;
+
+                btn.disabled = true;
+                btn.textContent = 'Загрузка...';
+
+                try {
+                    const resp = await fetch(`/stories/${storyId}/comments?skip=${loaded}&take=${take}`, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (!resp.ok) throw new Error();
+
+                    const html = await resp.text();
+                    document.getElementById(`c-${storyId}`).insertAdjacentHTML('beforeend', html);
+
+                    loaded += take;
+                    if (loaded >= total) btn.remove();
+                    else {
+                        btn.dataset.loaded = loaded;
+                        btn.disabled = false;
+                        btn.textContent = 'Показать ещё';
+                    }
+                } catch {
+                    btn.disabled = false;
+                    btn.textContent = 'Ошибка. Повторить?';
+                }
+            });
+
+            // ===== DELETE COMMENT (AJAX) =====
+            document.addEventListener('submit', async (e) => {
+                const form = e.target.closest('.js-del-comment-form');
+                if (!form) return;
+                e.preventDefault();
+
+                if (!confirm('Удалить комментарий?')) return;
+
+                try {
+                    const resp = await fetch(form.action, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        body: new FormData(form),
+                        credentials: 'same-origin'
+                    });
+                    if (!resp.ok) throw new Error();
+
+                    // убрать карточку комментария из DOM
+                    const commentEl = form.closest('.comment-item');
+                    if (commentEl) commentEl.remove();
+
+                    // уменьшить счетчик 💬
+                    const card = form.closest('.story.card');
+                    const storyId = card ? (card.id || '').replace('s-', '') : null;
+                    if (storyId) {
+                        const counter = document.querySelector(`#s-${storyId} .js-cmt-counter`);
+                        if (counter) {
+                            const n = Math.max(0, parseInt(counter.dataset.count || '0', 10) - 1);
+                            counter.dataset.count = String(n);
+                            counter.textContent = `💬 ${n}`;
+                        }
+                    }
+                } catch {
+                    alert('Не удалось удалить комментарий.');
+                }
+            });
+
+            // Мягко проскроллить к истории из профиля (?sid=)
+            (function () {
+                const url = new URL(window.location);
+                const sid = url.searchParams.get('sid');
+                if (!sid) return;
+                const el = document.getElementById('s-' + sid);
+                if (!el) return;
+                setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+            })();
+
+        })();
+    </script>
+}

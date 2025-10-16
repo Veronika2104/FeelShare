@@ -1,0 +1,288 @@
+﻿@model FeelShare.Web.Models.Emotion
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using FeelShare.Web.Models
+@using System.Linq
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = Model.Name;
+    var isAuth = User?.Identity?.IsAuthenticated ?? false;
+    var quotes = (IEnumerable<Quote>)(ViewBag.RandomQuotes ?? Enumerable.Empty<Quote>());
+}
+
+@section Styles {
+    <style>
+        :root {
+            --ink: #0f172a;
+            --muted: #64748b;
+            --card: #fff;
+            --border: #e5e7eb;
+            --soft: #f8fafc;
+            --g1: #6366f1;
+            --g2: #06b6d4;
+            --g3: #22c55e;
+            --shadow: 0 12px 30px rgba(2,6,23,.08);
+        }
+
+        .hero {
+            border-radius: 20px;
+            padding: 28px 22px;
+            margin-bottom: 18px;
+            color: #fff;
+            background: radial-gradient(1200px 600px at 100% -20%, rgba(255,255,255,.15), transparent 60%), linear-gradient(135deg, var(--g1), var(--g2) 60%, var(--g3));
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+        }
+
+            .hero .emj {
+                width: 64px;
+                height: 64px;
+                border-radius: 16px;
+                background: rgba(255,255,255,.15);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 34px;
+                box-shadow: inset 0 0 0 1px rgba(255,255,255,.25);
+            }
+
+            .hero h1 {
+                font-weight: 800;
+                letter-spacing: .2px;
+                margin: 0
+            }
+
+            .hero p {
+                margin: 6px 0 0;
+                opacity: .9
+            }
+
+        .section-title {
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: .5rem
+        }
+
+        .quote {
+            background: var(--soft);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--g1);
+            border-radius: 12px;
+            padding: 14px 16px;
+            box-shadow: var(--shadow);
+        }
+
+            .quote + .quote {
+                margin-top: .6rem
+            }
+
+            .quote .text {
+                font-size: 1.05rem;
+                line-height: 1.6;
+                color: var(--ink);
+                quotes: "\201C" "\201D";
+            }
+
+                .quote .text::before {
+                    content: open-quote;
+                    margin-right: .1rem
+                }
+
+            .quote .author {
+                color: var(--muted)
+            }
+
+        .card-ui {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+        }
+
+            .card-ui .head {
+                padding: 14px 18px;
+                border-bottom: 1px solid var(--border);
+                font-weight: 700;
+                color: var(--ink)
+            }
+
+            .card-ui .body {
+                padding: 16px 18px
+            }
+
+        .form-control, .form-select {
+            border-color: var(--border)
+        }
+
+            .form-control:focus {
+                border-color: #6366f1;
+                box-shadow: 0 0 0 .25rem rgba(99,102,241,.12)
+            }
+
+        .chips {
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap
+        }
+
+        .chip {
+            background: #eef2ff;
+            color: #4338ca;
+            border: 1px dashed #c7d2fe;
+            padding: .25rem .6rem;
+            border-radius: 999px;
+            font-size: .9rem;
+            cursor: pointer;
+        }
+
+            .chip:hover {
+                background: #e0e7ff
+            }
+
+        .btn-primary {
+            font-weight: 600
+        }
+
+        .backlink {
+            color: var(--muted);
+            text-decoration: none
+        }
+
+            .backlink:hover {
+                color: var(--ink);
+                text-decoration: underline
+            }
+    </style>
+}
+
+<section class="hero">
+    <div class="container">
+        <div class="d-flex align-items-center gap-3">
+            <div class="emj">@Model.Icon</div>
+            <div>
+                <h1 class="h3">@Model.Name</h1>
+                <p>Поделитесь тем, что чувствуете. Мы бережно сохраним запись в вашем дневнике.</p>
+            </div>
+            <div class="ms-auto">
+                <a asp-controller="Home" asp-action="Index" class="backlink">← Назад на главную</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container">
+    <!-- Цитаты -->
+    <div class="mb-4">
+        <div class="section-title">Поддерживающие цитаты</div>
+        @if (quotes.Any())
+        {
+            foreach (var q in quotes)
+            {
+                <div class="quote">
+                    <div class="text">“@q.Text”</div>
+                    @if (!string.IsNullOrWhiteSpace(q.Author))
+                    {
+                        <div class="author mt-1">— @q.Author</div>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <div class="alert alert-light border">Пока нет цитат для этой эмоции.</div>
+        }
+    </div>
+
+    <!-- Форма записи -->
+    <div class="card-ui">
+        <div class="head">Поделиться мыслями</div>
+        <div class="body">
+            <form id="entryForm" method="post" action="/emotion/save" novalidate>
+                @Html.AntiForgeryToken()                 <!-- защита от CSRF -->
+                <input type="hidden" name="emotionId" value="@Model.Id" /> <!-- к какой эмоции запись -->
+
+                <div class="mb-2">
+                    <!-- маленькие “подсказки” для автоподстановки текста -->
+                    <div class="chips mb-2">
+                        <span class="chip" data-insert="Сейчас я чувствую…">Сейчас я чувствую…</span>
+                        <span class="chip" data-insert="Причина этих эмоций…">Причина этих эмоций…</span>
+                        <span class="chip" data-insert="Я поддержу себя так…">Я поддержу себя так…</span>
+                    </div>
+
+                    <textarea class="form-control" id="content" name="content" rows="8"
+                              placeholder="Пишите всё, что чувствуете. Можно много — мы сохраним."
+                              maxlength="200000"></textarea>
+
+                    <div class="d-flex justify-content-between mt-1">
+                        <small class="text-muted">Только вы увидите свою запись. Поддерживается длинный текст (5000+ слов).</small>
+                        <small class="text-muted"><span id="cc">0</span> символов</small>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-3">
+                    <button type="submit" class="btn btn-primary">Сохранить в дневник</button>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Назад</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модалка для гостей -->
+<div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Нужно войти</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Чтобы сохранить запись, войдите в аккаунт или зарегистрируйтесь.
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-primary"
+                   asp-controller="Account" asp-action="Login"
+                   asp-route-returnUrl="@Context.Request.Path">Войти</a>
+                <a class="btn btn-outline-primary"
+                   asp-controller="Account" asp-action="Register"
+                   asp-route-returnUrl="@Context.Request.Path">Зарегистрироваться</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const isAuth = @JsonSerializer.Serialize(isAuth);
+            const form = document.getElementById('entryForm');
+            const ta = document.getElementById('content');
+            const cnt = document.getElementById('cc');
+
+            // блокируем отправку гостям — вместо этого показываем модалку
+            if (!isAuth && form) {
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    new bootstrap.Modal(document.getElementById('authModal')).show();
+                });
+            }
+
+            // авто-высота и счётчик символов
+            function grow(el) { el.style.height = 'auto'; el.style.height = (el.scrollHeight + 2) + 'px'; }
+            function updateCount() { if (cnt && ta) cnt.textContent = (ta.value || '').length; }
+            if (ta) { grow(ta); updateCount(); ta.addEventListener('input', () => { grow(ta); updateCount(); }); }
+
+            // быстрые вставки-чипсы
+            document.querySelectorAll('.chip').forEach(ch => {
+                ch.addEventListener('click', () => {
+                    const text = ch.getAttribute('data-insert') || '';
+                    if (!ta) return;
+                    const cur = ta.value || '';
+                    ta.value = cur ? (cur.trimEnd() + "\n" + text + " ") : (text + " ");
+                    ta.focus(); grow(ta); updateCount();
+                });
+            });
+        })();
+    </script>
+}

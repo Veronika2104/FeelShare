@@ -1,0 +1,53 @@
+﻿@model IEnumerable<FeelShare.Web.Models.Quote>
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Цитаты";
+}
+
+<h2 class="mb-3">@ViewData["Title"]</h2>
+
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <select name="emotionId" class="form-select" asp-items="ViewBag.Emotions">
+            <option value="">Все эмоции</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <input type="text" name="q" class="form-control" placeholder="Поиск в тексте" value="@Context.Request.Query["q"]">
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-secondary">Фильтр</button>
+        <a asp-action="Create" class="btn btn-primary ms-2">Добавить цитату</a>
+    </div>
+</form>
+
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th>Эмоция</th>
+            <th>Текст</th>
+            <th>Автор</th>
+            <th>Порядок</th>
+            <th style="width:120px"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var x in Model)
+        {
+            <tr>
+                <td>@x.Emotion?.Name</td>
+                <td>@(x.Text?.Length > 120 ? x.Text.Substring(0, 120) + "…" : x.Text)</td>
+                <td>@x.Author</td>
+                <td>@x.SortOrder</td>
+                <td class="text-end">
+                    <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Удалить цитату?');">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@x.Id" />
+                        <button class="btn btn-sm btn-outline-danger">Удалить</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

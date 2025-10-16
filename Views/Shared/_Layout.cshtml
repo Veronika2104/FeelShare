@@ -1,0 +1,171 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    string IsActive(string controller, string? action = null)
+    {
+        var c = (ViewContext.RouteData.Values["controller"]?.ToString() ?? "");
+        var a = (ViewContext.RouteData.Values["action"]?.ToString() ?? "");
+        return string.Equals(c, controller, StringComparison.OrdinalIgnoreCase)
+               && (action == null || string.Equals(a, action, StringComparison.OrdinalIgnoreCase))
+            ? "active" : "";
+    }
+}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - FeelShare</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    @RenderSection("Styles", required: false)
+
+    <style>
+        :root {
+            --nav-grad-a: #1f1147;
+            --nav-grad-b: #0f3a5e;
+            --nav-grad-c: #0b1020;
+            --accent-1: #a78bfa;
+            --accent-2: #06b6d4;
+            --accent-3: #22c55e;
+            --logo-h: 70px;
+        }
+
+        .fs-has-bg {
+            --fs-bg: url('@Url.Content("~/images/bg.png")');
+            background: radial-gradient(1200px 480px at 100% 0, rgba(167,139,250,.28), transparent 60%), linear-gradient(180deg, rgba(109,40,217,.22), rgba(14,165,233,.12)), linear-gradient(rgba(11,16,26,.32), rgba(11,16,26,.32)), var(--fs-bg) center/cover no-repeat fixed;
+            min-height: 100dvh;
+        }
+
+        main[role="main"] {
+            background: rgba(255,255,255,.88);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 16px;
+            padding: 1.25rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,.08);
+        }
+
+        .fs-navbar {
+            background: radial-gradient(800px 120px at 100% 0%, rgba(6,182,212,.16), transparent 60%), linear-gradient(90deg, var(--nav-grad-a), var(--nav-grad-b) 60%, var(--nav-grad-c));
+        }
+
+            .fs-navbar .brand-logo {
+                height: var(--logo-h);
+                width: auto;
+                object-fit: contain;
+                filter: drop-shadow(0 2px 6px rgba(0,0,0,.35));
+            }
+
+            .fs-navbar .nav-link {
+                color: rgba(255,255,255,.85);
+                font-weight: 600;
+                position: relative;
+            }
+
+                .fs-navbar .nav-link:hover, .fs-navbar .nav-link.active {
+                    color: #fff;
+                }
+
+                .fs-navbar .nav-link::after {
+                    content: "";
+                    position: absolute;
+                    left: .75rem;
+                    right: .75rem;
+                    bottom: .35rem;
+                    height: 2px;
+                    background: linear-gradient(90deg, var(--accent-1), var(--accent-2), var(--accent-3));
+                    opacity: 0;
+                    transform: scaleX(.6);
+                    transition: opacity .2s, transform .2s;
+                }
+
+                .fs-navbar .nav-link:hover::after, .fs-navbar .nav-link.active::after {
+                    opacity: 1;
+                    transform: scaleX(1);
+                }
+    </style>
+</head>
+<body class="fs-has-bg">
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark fs-navbar sticky-top shadow-sm">
+            <div class="container-xl">
+                <a class="navbar-brand d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/log1.png" asp-append-version="true" alt="FeelShare" class="brand-logo" />
+                    <span class="brand-text text-white fw-bold">FEELSHARE</span>
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                        aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link @IsActive("Home","Index")" asp-controller="Home" asp-action="Index">Главная</a>
+                        </li>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @IsActive("Quotes","Index")" asp-area="Admin" asp-controller="Quotes" asp-action="Index">Админка</a>
+                            </li>
+                        }
+                    </ul>
+
+                    <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+                        @if (User.Identity?.IsAuthenticated ?? false)
+                        {
+                            <li class="nav-item d-none d-lg-block">
+                                <a class="btn btn-outline-light btn-sm px-3"
+                                   href="@Url.Action("Index","Profile", new { area = "" })">Профиль</a>
+                            </li>
+                            <li class="nav-item d-none d-lg-block">
+                                <a class="btn btn-outline-light btn-sm px-3"
+                                   href="@Url.Action("Me","Profile", new { area = "" })">Мой дневник</a>
+                            </li>
+
+                         
+                            <li class="nav-item d-lg-none">
+                                <a class="nav-link" href="@Url.Action("Index","Profile", new { area = "" })">Профиль</a>
+                            </li>
+                            <li class="nav-item d-lg-none">
+                                <a class="nav-link" href="@Url.Action("Me","Profile", new { area = "" })">Мой дневник</a>
+                            </li>
+                        }
+                        <li class="nav-item">
+                            @await Html.PartialAsync("~/Views/Shared/_LoginPartial.cshtml")
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-4 pt-3">
+            @await Html.PartialAsync("~/Views/Shared/_Alerts.cshtml")
+            @RenderBody()
+        </main>
+    </div>
+
+    @* РЕНДЕРИМ ТОЛЬКО ОДИН РАЗ *@
+    @RenderSection("Modals", required: false)
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.alert[data-autohide="true"]').forEach(el => {
+                const delay = parseInt(el.getAttribute('data-delay') || '4000', 10);
+                setTimeout(() => {
+                    try { el.classList.add('fs-hide'); setTimeout(() => bootstrap.Alert.getOrCreateInstance(el).close(), 220); } catch { }
+                }, delay);
+            });
+        });
+    </script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

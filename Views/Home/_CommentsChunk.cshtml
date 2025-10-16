@@ -1,0 +1,23 @@
+﻿@model List<FeelShare.Web.ViewModels.CommentItemVM>
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@foreach (var c in Model)
+{
+    <div class="comment-item d-flex flex-column gap-1" id="comment-@c.Id">
+        <div class="small text-muted">
+            <strong>@c.Author</strong> · @c.CreatedAtUtc.ToLocalTime().ToString("g")
+        </div>
+        <div style="white-space:pre-wrap">@c.Content</div>
+
+        @if (c.IsOwner)
+        {
+            <form method="post"
+                  class="d-inline js-del-comment-form"
+                  asp-route="StoryCommentDelete"
+                  asp-route-id="@c.Id">
+                @Html.AntiForgeryToken()
+                <button class="btn btn-link btn-sm text-danger p-0">Удалить</button>
+            </form>
+        }
+    </div>
+}

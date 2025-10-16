@@ -1,0 +1,59 @@
+﻿@model FeelShare.Web.ViewModels.CreateStoryVM
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    var isAuth = Context.User?.Identity?.IsAuthenticated ?? false;
+}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Поделись историей анонимно</h5>
+
+        @if (isAuth)
+        {
+            <form method="post" asp-controller="Home" asp-action="CreateStory">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+
+                <div class="row g-2">
+                    <div class="col-sm-4">
+                        <select class="form-select" name="emotionId" required>
+                            <option value="">Выбери эмоцию…</option>
+                            @{
+                                var selectedId = Model.SelectedEmotionId ?? 0;
+                            }
+                            @foreach (var m in Model.Moods)
+                            {
+                                if (selectedId == m.Id)
+                                {
+                                    <option value="@m.Id" selected>@m.Icon @m.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@m.Id">@m.Icon @m.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-12">
+                        <textarea class="form-control" name="content" rows="4"
+                                  placeholder="Напиши свою историю. Имя не покажем — публикация анонимная." required></textarea>
+                        <div class="form-text">История будет видна всем. Личные данные лучше не указывать.</div>
+                    </div>
+
+                    <div class="col-12">
+                        <button class="btn btn-primary">Опубликовать</button>
+                    </div>
+                </div>
+            </form>
+        }
+        else
+        {
+            <div class="alert alert-light border">
+                Чтобы написать историю, <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@(Model.ReturnUrl ?? "/")">войдите</a>
+                или <a asp-controller="Account" asp-action="Register" asp-route-returnUrl="@(Model.ReturnUrl ?? "/")">зарегистрируйтесь</a>.
+                Читать  можно без входа.
+            </div>
+        }
+    </div>
+</div>

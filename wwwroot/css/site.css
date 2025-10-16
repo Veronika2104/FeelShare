@@ -1,0 +1,85 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+/* Алёрты: аккуратная карточка + цветная полоска слева */
+.fs-alerts {
+    margin-bottom: .75rem;
+}
+
+.fs-alert {
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,.06);
+    padding-left: 0.9rem;
+    position: relative;
+}
+
+    .fs-alert::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 6px;
+        border-radius: 12px 0 0 12px;
+    }
+
+.alert-success.fs-alert::before {
+    background: #22c55e;
+}
+
+.alert-danger.fs-alert::before {
+    background: #ef4444;
+}
+
+.alert-info.fs-alert::before {
+    background: #06b6d4;
+}
+
+.alert-warning.fs-alert::before {
+    background: #f59e0b;
+}
+
+.fs-alert-ico {
+    font-size: 1.1rem;
+    line-height: 1;
+    margin-top: .1rem;
+}
+
+/* небольшая анимация исчезновения (опционально) */
+.fs-alert.fs-hide {
+    animation: fsAlertOut .35s ease forwards;
+}
+
+@keyframes fsAlertOut {
+    to {
+        transform: translateY(-6px);
+        opacity: 0;
+    }
+}
+/* Контрастный бейдж на активной синей кнопке */
+.btn-primary .badge {
+    background: #fff;
+    color: #0d6efd;
+}
+/* На outline — мягкий */
+.btn-outline-primary .badge {
+    background: rgba(13,110,253,.12);
+    color: #0d6efd;
+}

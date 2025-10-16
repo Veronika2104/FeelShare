@@ -1,0 +1,49 @@
+﻿@* Показывается ОДИН раз из _Layout *@
+@{
+    string? ok = TempData["Success"] as string;
+    string? err = TempData["Error"] as string;
+    string? info = TempData["Info"] as string;
+    string? warn = TempData["Warning"] as string;
+}
+<div class="fs-alerts position-relative" aria-live="polite" aria-atomic="true">
+    @if (!string.IsNullOrWhiteSpace(ok))
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm fs-alert" data-autohide="true" data-delay="3800" role="alert">
+            <div class="d-flex align-items-start gap-2">
+                <span class="fs-alert-ico">✅</span>
+                <div>@ok</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(err))
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm fs-alert" data-autohide="true" data-delay="5200" role="alert">
+            <div class="d-flex align-items-start gap-2">
+                <span class="fs-alert-ico">⚠️</span>
+                <div>@err</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(info))
+    {
+        <div class="alert alert-info alert-dismissible fade show shadow-sm fs-alert" data-autohide="true" data-delay="4200" role="alert">
+            <div class="d-flex align-items-start gap-2">
+                <span class="fs-alert-ico">ℹ️</span>
+                <div>@info</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(warn))
+    {
+        <div class="alert alert-warning alert-dismissible fade show shadow-sm fs-alert" data-autohide="true" data-delay="4800" role="alert">
+            <div class="d-flex align-items-start gap-2">
+                <span class="fs-alert-ico">🟡</span>
+                <div>@warn</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+        </div>
+    }
+</div>

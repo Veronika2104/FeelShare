@@ -1,0 +1,39 @@
+﻿@model FeelShare.Web.Controllers.EntryModalVM
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<div class="modal-header">
+    <h5 class="modal-title">@Model.EmotionIcon @Model.EmotionName</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+    <div class="text-muted small mb-2">
+        Создано: @Model.CreatedAtLocal:g
+        @if (Model.UpdatedAtLocal is not null)
+        {
+            <span>· Обновлено: @Model.UpdatedAtLocal:g</span>
+        }
+    </div>
+
+    <form id="entryEditForm" method="post" asp-action="Update" asp-controller="Profile">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="Id" value="@Model.Id" />
+        <textarea class="form-control" name="Content" id="entryContent" rows="10" readonly>@Model.Content</textarea>
+        <div class="form-text">Нажмите «Редактировать», измените текст и «Сохранить».</div>
+    </form>
+</div>
+
+<div class="modal-footer justify-content-between">
+    <div>
+        <form id="entryDeleteForm" method="post" asp-action="Delete" asp-controller="Profile" class="d-inline"
+              onsubmit="return confirm('Удалить запись без возможности восстановления?');">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-outline-danger">Удалить</button>
+        </form>
+    </div>
+    <div class="d-flex gap-2">
+        <button type="button" id="editBtn" class="btn btn-outline-secondary">Редактировать</button>
+        <button type="submit" form="entryEditForm" id="saveBtn" class="btn btn-primary d-none">Сохранить</button>
+    </div>
+</div>

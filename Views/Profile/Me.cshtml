@@ -1,0 +1,267 @@
+﻿@model IEnumerable<FeelShare.Web.Models.JournalEntry>
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Мой дневник";
+    var count = Model?.Count() ?? 0;
+
+    // Список эмоций для чипсов-фильтров (distinct по Id)
+    var emoList = (Model ?? Enumerable.Empty<FeelShare.Web.Models.JournalEntry>())
+        .Select(e => new { Id = e.Emotion.Id, Name = e.Emotion.Name, Icon = e.Emotion.Icon })
+        .GroupBy(x => x.Id)
+        .Select(g => g.First())
+        .OrderBy(x => x.Id)
+        .ToList();
+}
+
+@section Styles {
+    <style>
+        :root {
+            --ink: #0f172a;
+            --muted: #64748b;
+            --border: #e5e7eb;
+            --soft: #f8fafc;
+            --card: #fff;
+            --g1: #6366f1;
+            --g2: #06b6d4;
+            --g3: #22c55e;
+            --shadow: 0 12px 30px rgba(2,6,23,.08);
+        }
+
+        .hero {
+            border-radius: 20px;
+            padding: 28px 22px;
+            margin-bottom: 18px;
+            color: #fff;
+            background: radial-gradient(1200px 600px at 100% -20%,rgba(255,255,255,.15),transparent 60%), linear-gradient(135deg,var(--g1),var(--g2) 60%,var(--g3));
+            box-shadow: var(--shadow)
+        }
+
+            .hero .title {
+                font-weight: 800;
+                letter-spacing: .2px;
+                margin: 0
+            }
+
+            .hero .sub {
+                opacity: .9;
+                margin: 6px 0 0
+            }
+
+        .toolbar {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 10px;
+            box-shadow: var(--shadow);
+            display: flex;
+            gap: .75rem;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .chip {
+            background: #eef2ff;
+            color: #4338ca;
+            border: 1px dashed #c7d2fe;
+            padding: .3rem .7rem;
+            border-radius: 999px;
+            font-size: .92rem;
+            cursor: pointer;
+            transition: all .15s ease
+        }
+
+            .chip:hover {
+                background: #e0e7ff
+            }
+
+            .chip.active {
+                background: #4338ca;
+                color: #fff;
+                border-color: #4338ca
+            }
+
+        .search {
+            flex: 1 1 280px;
+            position: relative
+        }
+
+            .search input {
+                width: 100%;
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                padding: .6rem .9rem .6rem 2.2rem
+            }
+
+            .search svg {
+                position: absolute;
+                left: .65rem;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 18px;
+                height: 18px;
+                opacity: .6
+            }
+
+        .entry {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: var(--shadow);
+            text-align: left;
+            padding: 14px 16px;
+            width: 100%
+        }
+
+            .entry + .entry {
+                margin-top: .75rem
+            }
+
+            .entry .line2 {
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                color: #111827
+            }
+
+        .tag {
+            font-weight: 600
+        }
+
+        .muted {
+            color: var(--muted)
+        }
+    </style>
+}
+
+<section class="hero">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <h1 class="h3 title">📓 @ViewData["Title"]</h1>
+                <p class="sub">@count @(count == 1 ? "запись" : (count >= 2 && count <= 4 ? "записи" : "записей")) — бережно храним только для вас</p>
+            </div>
+            <div>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-light">← На главную</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+@if (!(Model?.Any() ?? false))
+{
+    <div class="alert alert-info">
+        Записей пока нет. На главной выберите эмоцию и напишите первую запись.
+    </div>
+}
+else
+{
+    <!-- Панель фильтров -->
+    <div class="toolbar mb-3">
+        <div class="search">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35M10 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z" /></svg>
+            <input id="q" type="search" placeholder="Поиск по тексту записи…" />
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="chip active" data-em="all">Все</span>
+            @foreach (var em in emoList)
+            {
+                <span class="chip" data-em="@em.Id">@em.Icon @em.Name</span>
+            }
+        </div>
+    </div>
+
+    <!-- Список записей -->
+    <div id="list" class="list-group">
+        @foreach (var x in Model)
+        {
+            <button type="button"
+                    class="entry"
+                    data-entry-id="@x.Id"
+                    data-em="@x.Emotion.Id"
+                    data-text="@((x.Content ?? string.Empty).ToLowerInvariant())">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="tag">@x.Emotion.Icon @x.Emotion.Name</div>
+                    <small class="muted">@x.CreatedAtUtc.ToLocalTime().ToString("g")</small>
+                </div>
+                <div class="mt-2 line2">@x.Content</div>
+            </button>
+        }
+    </div>
+
+    <div id="nores" class="alert alert-light border mt-3 d-none">
+        Ничего не найдено. Попробуйте изменить фильтр или запрос.
+    </div>
+}
+
+@section Modals {
+    <div class="modal fade" id="entryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" id="entryModalContent"><!-- partial сюда --></div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        (() => {
+            const modalEl = document.getElementById('entryModal');
+            const modalContent = document.getElementById('entryModalContent');
+
+            // Перестраховка: модалка должна быть прямым потомком body
+            if (modalEl && modalEl.parentElement !== document.body) {
+                document.body.appendChild(modalEl);
+            }
+
+            // Открытие модалки и загрузка partial
+            document.querySelectorAll('[data-entry-id]').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const id = btn.getAttribute('data-entry-id');
+                    try {
+                        const resp = await fetch(`/profile/entry/${id}`, {
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        });
+
+                        // Покажем, ПОЧЕМУ не ок (на будущее)
+                        if (!resp.ok) {
+                            const txt = await resp.text().catch(() => '');
+                            console.error('Entry load failed', resp.status, txt?.slice?.(0, 300));
+                            throw new Error('failed');
+                        }
+
+                        modalContent.innerHTML = await resp.text();
+                        wireEntryModal(modalContent);
+
+                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                    } catch {
+                        alert('Не удалось загрузить запись');
+                    }
+                });
+            });
+
+            function wireEntryModal(root) {
+                const editBtn = root.querySelector('#editBtn');
+                const saveBtn = root.querySelector('#saveBtn');
+                const content = root.querySelector('#entryContent');
+                if (!editBtn || !saveBtn || !content) return;
+
+                editBtn.addEventListener('click', () => {
+                    content.removeAttribute('readonly');
+                    content.focus();
+                    editBtn.classList.add('d-none');
+                    saveBtn.classList.remove('d-none');
+                });
+
+                const form = root.querySelector('#entryForm');
+                if (form) {
+                    form.addEventListener('submit', () => {
+                        content.value = (content.value || '').trim();
+                    });
+                }
+            }
+        })();
+    </script>
+}
