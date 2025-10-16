@@ -9,8 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var cs = builder.Configuration.GetConnectionString("DefaultConnection");
-    options.UseSqlite(cs);
+    options.UseSqlite(cs); // пока принудительно SQLite везде
 });
+
 // 2) Identity
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(opts =>
@@ -69,7 +70,7 @@ app.UseAuthorization();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    db.Database.EnsureCreated();
 }
 
 app.MapControllerRoute(
