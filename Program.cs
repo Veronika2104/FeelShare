@@ -6,10 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1) БД
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
-
+{
+    var cs = builder.Configuration.GetConnectionString("DefaultConnection");
+    options.UseSqlite(cs);
+});
 // 2) Identity
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(opts =>
@@ -67,7 +68,8 @@ app.UseAuthorization();
 
 using (var scope = app.Services.CreateScope())
 {
-    await Seed.AdminAsync(scope.ServiceProvider);
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
 }
 
 app.MapControllerRoute(
