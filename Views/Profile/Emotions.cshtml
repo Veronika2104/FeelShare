@@ -1,0 +1,220 @@
+﻿@using System.Text.Json@{
+
+    var labels = (IEnumerable<string>)(ViewBag.Labels ?? new List<string>());
+    var series = ViewBag.Series ?? new List<object>();
+    double? todayAvg = ViewBag.TodayAvg as double?;
+    string? advice = ViewBag.Advice as string;
+
+    var years = (List<int>)(ViewBag.Years ?? new List<int>());
+    var months = (IEnumerable<dynamic>)(ViewBag.Months ?? new List<dynamic>());
+    int selectedYear = (int)(ViewBag.SelectedYear ?? DateTime.Today.Year);
+    int selectedMonth = (int)(ViewBag.SelectedMonth ?? DateTime.Today.Month);
+}
+
+<div class="d-flex gap-2 align-items-end mb-3 flex-wrap">
+    <div>
+        <label class="form-label text-muted small mb-1">Год</label>
+        <select id="yearSelect" class="form-select">
+            @foreach (var y in years.OrderByDescending(x => x))
+            {
+                <option value="@y" selected="@(y == selectedYear)">@y</option>
+            }
+        </select>
+    </div>
+
+    <div>
+        <label class="form-label text-muted small mb-1">Месяц</label>
+        <select id="monthSelect" class="form-select">
+            @foreach (var mm in months)
+            {
+                <option value="@mm.Value" selected="@(mm.Value == selectedMonth)">@mm.Text</option>
+            }
+        </select>
+    </div>
+
+    <div class="text-muted small ms-auto">
+      
+        График строится по дням, когда были отметки
+    </div>
+</div>
+
+<div class="chart-card p-3 mb-3">
+    <div style="height: 360px">
+        <canvas id="moodChart"></canvas>
+    </div>
+</div>
+
+<div class="advice-card mb-4">
+    <div class="d-flex align-items-center gap-3">
+        @{
+            var cat = todayAvg.HasValue
+            ? (todayAvg.Value < 2.0 ? "bad" : (todayAvg.Value < 4.0 ? "neutral" : "good"))
+            : "neutral";
+
+            var label = todayAvg.HasValue
+            ? (cat == "bad" ? "Сегодня скорее некомфортно"
+            : cat == "good" ? "Сегодня вы на подъёме"
+            : "Сегодня баланс")
+            : "Нет данных за сегодня";
+        }
+
+        <span class="advice-badge @cat">@label</span>
+
+        @if (todayAvg.HasValue)
+        {
+            <span class="text-muted">средняя оценка: @todayAvg.Value.ToString("0.0") / 5</span>
+        }
+    </div>
+    
+    <div class="mt-2">
+        @if (!string.IsNullOrWhiteSpace(advice))
+        {
+            @advice
+        }
+        else
+        {
+            <span class="text-muted">Советы для этой категории пока не добавлены админом.</span>
+        }
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .chart-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            background: #ffffff;
+            box-shadow: 0 8px 22px rgba(2,6,23,.06);
+        }
+
+        .advice-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            background: #f8fafc;
+            padding: 16px;
+        }
+
+        .advice-badge {
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 999px;
+        }
+
+            .advice-badge.bad {
+                background: #fee2e2;
+                color: #991b1b;
+            }
+
+            .advice-badge.neutral {
+                background: #e5e7eb;
+                color: #111827;
+            }
+
+            .advice-badge.good {
+                background: #dcfce7;
+                color: #065f46;
+            }
+
+        body.theme-dark .chart-card,
+        body.theme-dark .advice-card {
+            background: #020617;
+            border-color: #1f2937;
+            color: #e5e7eb;
+            box-shadow: 0 10px 26px rgba(0,0,0,.65);
+        }
+
+            body.theme-dark .advice-card .text-muted {
+                color: #9ca3af !important;
+            }
+
+        body.theme-dark .advice-badge.bad {
+            background: #7f1d1d;
+            color: #fee2e2;
+        }
+
+        body.theme-dark .advice-badge.neutral {
+            background: #374151;
+            color: #e5e7eb;
+        }
+
+        body.theme-dark .advice-badge.good {
+            background: #14532d;
+            color: #bbf7d0;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        (() => {
+            const labels = @Html.Raw(JsonSerializer.Serialize(labels));
+            const raw = @Html.Raw(JsonSerializer.Serialize(series));
+
+            const COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6', '#f97316', '#22c55e'];
+
+            const datasets = raw.map((s, i) => ({
+                label: s.name,
+                data: s.values,                
+                borderColor: COLORS[i % COLORS.length],
+                backgroundColor: COLORS[i % COLORS.length],
+                borderWidth: 2,
+                pointRadius: 3,
+                pointHoverRadius: 5,
+                tension: 0.25,
+                spanGaps: false,
+                fill: false
+            }));
+
+            const ctx = document.getElementById('moodChart');
+            if (!ctx) return;
+
+            // если данных нет покажем пустую сетку без ошибок
+            new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                footer: () => '0 — хуже · 5 — лучше'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0, max: 5,
+                            ticks: { stepSize: 1 },
+                            title: { display: true, text: 'Оценка' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Период' }
+                        }
+                    }
+                }
+            });
+        })();
+    </script>
+
+    <script>
+        (() => {
+            const ySel = document.getElementById('yearSelect');
+            const mSel = document.getElementById('monthSelect');
+            if (!ySel || !mSel) return;
+
+            function go() {
+                const y = ySel.value;
+                const m = mSel.value;
+                window.location.href = `/profile/emotions?year=${y}&month=${m}`;
+            }
+
+            ySel.addEventListener('change', go);
+            mSel.addEventListener('change', go);
+        })();
+    </script>
+}

@@ -20,7 +20,7 @@ html {
 body {
   margin-bottom: 60px;
 }
-/* Алёрты: аккуратная карточка + цветная полоска слева */
+
 .fs-alerts {
     margin-bottom: .75rem;
 }
@@ -62,7 +62,6 @@ body {
     margin-top: .1rem;
 }
 
-/* небольшая анимация исчезновения (опционально) */
 .fs-alert.fs-hide {
     animation: fsAlertOut .35s ease forwards;
 }
@@ -73,12 +72,12 @@ body {
         opacity: 0;
     }
 }
-/* Контрастный бейдж на активной синей кнопке */
+
 .btn-primary .badge {
     background: #fff;
     color: #0d6efd;
 }
-/* На outline — мягкий */
+
 .btn-outline-primary .badge {
     background: rgba(13,110,253,.12);
     color: #0d6efd;

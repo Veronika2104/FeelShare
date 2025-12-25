@@ -1,0 +1,135 @@
+﻿<div class="ex-card">
+    <div class="ex-head">
+        <div class="ex-title">🤍 Упражнение: я рядом</div>
+        <div class="ex-sub">2 минуты мягкого присутствия</div>
+    </div>
+
+    <div class="ex-body text-center">
+        <div class="lonely-ring" id="lonelyRing">
+            <div class="lonely-text" id="lonelyText">
+                Ты не один(одна)
+            </div>
+        </div>
+
+        <p class="mt-3 muted">
+            Положи руку на грудь или живот<br />
+            Дыши спокойно
+        </p>
+
+        <button class="btn btn-outline-primary mt-2" id="lonelyBtn">
+            Начать
+        </button>
+    </div>
+</div>
+
+<style>
+    .lonely-ring{
+    position: relative;
+    width: 240px;
+    height: 240px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    margin: 0 auto;
+
+    /* тёплый фон */
+    background: radial-gradient(
+        circle at 30% 25%,
+        #fde68a,
+        #fbbf24 45%,
+        #f59e0b 70%
+    );
+
+    /* мягкое свечение */
+    box-shadow:
+        0 0 0 0 rgba(251,191,36,.45),
+        0 0 40px rgba(251,191,36,.35);
+
+    animation: warmPulse 6s ease-in-out infinite;
+}
+
+
+.lonely-ring::after{
+    content:"";
+    position:absolute;
+    inset:14px;
+    border-radius:999px;
+    background: rgba(255,255,255,.55);
+    backdrop-filter: blur(6px);
+}
+
+/* текст всегда поверх */
+.lonely-text{
+    position: relative;
+    z-index: 1;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: #7c2d12; 
+    text-align: center;
+    padding: 0 12px;
+}
+
+@@keyframes warmPulse{
+    0%{
+        box-shadow:
+            0 0 0 0 rgba(251,191,36,.35),
+            0 0 40px rgba(251,191,36,.25);
+    }
+    50%{
+        box-shadow:
+            0 0 0 18px rgba(251,191,36,.18),
+            0 0 70px rgba(251,191,36,.45);
+    }
+    100%{
+        box-shadow:
+            0 0 0 0 rgba(251,191,36,.35),
+            0 0 40px rgba(251,191,36,.25);
+    }
+}
+
+
+body.theme-dark .lonely-ring{
+    background: radial-gradient(
+        circle at 30% 25%,
+        #facc15,
+        #f59e0b 50%,
+        #b45309 75%
+    );
+}
+body.theme-dark .lonely-ring::after{
+    background: rgba(2,6,23,.6);
+}
+body.theme-dark .lonely-text{
+    color: #fde68a;
+}
+</style>
+
+<script>
+    (() => {
+        const btn = document.getElementById('lonelyBtn');
+        const text = document.getElementById('lonelyText');
+        if (!btn) return;
+
+        const phrases = [
+            'Ты не один(одна)',
+            'Я с тобой',
+            'Ты важен(важна)',
+            'Это чувство пройдёт',
+            'Ты справляешься'
+        ];
+
+        btn.onclick = () => {
+            let i = 0;
+            btn.disabled = true;
+            const t = setInterval(() => {
+                text.textContent = phrases[i % phrases.length];
+                i++;
+                if (i === phrases.length * 2) {
+                    clearInterval(t);
+                    btn.disabled = false;
+                    btn.textContent = 'Спасибо ';
+                }
+            }, 3000);
+        };
+    })();
+</script>

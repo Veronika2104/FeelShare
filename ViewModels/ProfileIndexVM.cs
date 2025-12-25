@@ -52,7 +52,7 @@ namespace FeelShare.Web.ViewModels
         public ProfileStatsVM Stats { get; set; } = new ProfileStatsVM();
 
         // последние активности для превью
-        public List<JournalEntry> LatestEntries { get; set; } = new();            // с Emotion включённым
+        public List<JournalEntry> LatestEntries { get; set; } = new();           
         public List<MyCommentRowVM> LatestMyComments { get; set; } = new();
         public List<FeedbackRowVM> LatestFeedback { get; set; } = new();
 

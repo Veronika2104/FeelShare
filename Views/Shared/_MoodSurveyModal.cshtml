@@ -1,0 +1,91 @@
+﻿@model List<FeelShare.Web.Models.Emotion>
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<style>
+  /* Полупрозрачный затемнённый фон */
+  .modal-backdrop.show { opacity: .35; }
+  .modal-backdrop { backdrop-filter: blur(2px); }
+
+  /* Компактная стеклянная модалка */
+  .glass-modal .modal-dialog {
+    max-width: 420px;          
+  }
+
+
+  .glass-modal .modal-content {
+    border: 1px solid rgba(255,255,255,.55);
+    background: rgba(255,255,255,.78);
+    backdrop-filter: saturate(140%) blur(10px);
+    -webkit-backdrop-filter: saturate(140%) blur(10px);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(2,6,23,.16);
+  }
+  .glass-modal .modal-header,
+  .glass-modal .modal-footer {
+    border: 0;
+    padding: 12px 14px;
+  }
+  .glass-modal .modal-title {
+    font-weight: 700;
+    letter-spacing: .2px;
+  }
+  .glass-modal .modal-body {
+    padding: 12px 14px 6px;
+  }
+
+  
+  .mood-row { margin-bottom: .75rem; }
+  .mood-row .form-label { 
+    margin-bottom: .25rem; 
+    font-weight: 600;
+  }
+  .mood-row output {
+    margin-left: .5rem;
+    font-size: .85rem;
+  }
+  .form-range.thin { height: 1.1rem; }
+  .form-range.thin::-webkit-slider-runnable-track { height: 6px; }
+  .form-range.thin::-webkit-slider-thumb { width: 16px; height: 16px; margin-top: -5px; }
+  .form-range.thin::-moz-range-track { height: 6px; }
+  .form-range.thin::-moz-range-thumb { width: 16px; height: 16px; }
+
+
+
+</style>
+
+<div class="modal fade glass-modal" id="moodModal" tabindex="-1" aria-hidden="true"
+     data-bs-focus="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" asp-controller="Mood" asp-action="Save">
+        @Html.AntiForgeryToken()
+
+        <div class="modal-header">
+          <h5 class="modal-title">Как ты сегодня?</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+
+        <div class="modal-body">
+          <p class="text-muted small mb-2">Отметь по шкале от 0 до 5. Видно только тебе.</p>
+
+          @foreach (var e in Model)
+          {
+            <div class="mood-row">
+              <label class="form-label">@e.Icon @e.Name</label>
+             
+              <input type="range" class="form-range thin" min="0" max="5" step="1"
+                     name="scores[@e.Id]" value="3"
+                     oninput="this.nextElementSibling.value = this.value" />
+              <output class="badge bg-secondary">3</output>
+            </div>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Позже</button>
+          <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

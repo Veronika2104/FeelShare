@@ -4,24 +4,122 @@
     ViewData["Title"] = "Цитаты";
 }
 
+@section Styles {
+    <style>
+        /* Стили тёмной темы для таблицы, фильтров и кнопок */
+        body.theme-dark {
+            --q-bg: #020617;
+            --q-bg-soft: #0b1220;
+            --q-border: #1f2937;
+            --q-text: #e5e7eb;
+            --q-muted: #9ca3af;
+            --q-head: #f8fafc;
+        }
+
+            body.theme-dark h2 {
+                color: var(--q-head);
+            }
+
+            body.theme-dark .form-control,
+            body.theme-dark .form-select {
+                background: var(--q-bg-soft) !important;
+                border-color: var(--q-border) !important;
+                color: var(--q-text) !important;
+            }
+
+                body.theme-dark .form-control::placeholder {
+                    color: var(--q-muted) !important;
+                }
+
+                body.theme-dark .form-control:focus,
+                body.theme-dark .form-select:focus {
+                    border-color: rgba(59,130,246,.7) !important;
+                    box-shadow: 0 0 0 .2rem rgba(59,130,246,.15) !important;
+                }
+
+            body.theme-dark .btn-secondary {
+                background: #334155;
+                border-color: #334155;
+                color: #e5e7eb;
+            }
+
+                body.theme-dark .btn-secondary:hover {
+                    background: #475569;
+                }
+
+            body.theme-dark .btn-primary {
+                background: #2563eb;
+                border-color: #2563eb;
+            }
+
+                body.theme-dark .btn-primary:hover {
+                    background: #1d4ed8;
+                }
+
+            body.theme-dark table.table {
+                background: var(--q-bg);
+                color: var(--q-text);
+                border-color: var(--q-border);
+            }
+
+            body.theme-dark .table thead th {
+                background: var(--q-bg-soft);
+                color: var(--q-head);
+                border-color: var(--q-border);
+            }
+
+            body.theme-dark .table tbody td {
+                color: var(--q-text);
+                border-color: var(--q-border);
+            }
+
+            body.theme-dark .table-striped > tbody > tr:nth-of-type(odd) {
+                background-color: rgba(15,23,42,.45);
+            }
+
+            body.theme-dark .table tbody tr:hover {
+                background-color: rgba(30,41,59,.6);
+            }
+
+            body.theme-dark .btn-outline-danger {
+                border-color: rgba(239,68,68,.6);
+                color: #fecaca;
+            }
+
+                body.theme-dark .btn-outline-danger:hover {
+                    background: rgba(239,68,68,.15);
+                    border-color: rgba(239,68,68,.9);
+                    color: #fff;
+                }
+
+            body.theme-dark .text-muted {
+                color: var(--q-muted) !important;
+            }
+    </style>
+}
+
 <h2 class="mb-3">@ViewData["Title"]</h2>
 
-
+<!-- Фильтр: эмоция + поиск по тексту -->
 <form method="get" class="row g-2 mb-3">
     <div class="col-auto">
         <select name="emotionId" class="form-select" asp-items="ViewBag.Emotions">
             <option value="">Все эмоции</option>
         </select>
     </div>
+
     <div class="col-auto">
-        <input type="text" name="q" class="form-control" placeholder="Поиск в тексте" value="@Context.Request.Query["q"]">
+        <input type="text" name="q" class="form-control" placeholder="Поиск в тексте"
+               value="@Context.Request.Query["q"]">
     </div>
+
     <div class="col-auto">
         <button class="btn btn-secondary">Фильтр</button>
         <a asp-action="Create" class="btn btn-primary ms-2">Добавить цитату</a>
     </div>
 </form>
 
+<!-- Таблица цитат -->
 <table class="table table-striped align-middle">
     <thead>
         <tr>
@@ -32,16 +130,23 @@
             <th style="width:120px"></th>
         </tr>
     </thead>
+
     <tbody>
         @foreach (var x in Model)
         {
             <tr>
                 <td>@x.Emotion?.Name</td>
+
+                <!-- Делаю обрезку, чтобы таблица не разъезжалась -->
                 <td>@(x.Text?.Length > 120 ? x.Text.Substring(0, 120) + "…" : x.Text)</td>
+
                 <td>@x.Author</td>
                 <td>@x.SortOrder</td>
+
                 <td class="text-end">
-                    <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Удалить цитату?');">
+                    <!-- Удаление через POST + AntiForgery -->
+                    <form asp-action="Delete" method="post" class="d-inline"
+                          onsubmit="return confirm('Удалить цитату?');">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="id" value="@x.Id" />
                         <button class="btn btn-sm btn-outline-danger">Удалить</button>

@@ -1,0 +1,71 @@
+﻿<div class="ex-card">
+    <div class="ex-head">
+        <div class="ex-title"> Упражнение: безопасный сброс злости</div>
+        <div class="ex-sub">60 секунд, чтобы выпустить напряжение и вернуть контроль</div>
+    </div>
+
+    <div class="ex-body text-center">
+        <div class="anger-circle" id="angerCircle">
+            <div class="anger-time" id="angerTime">60</div>
+            <div class="muted">секунд</div>
+        </div>
+
+        <p class="mt-3 muted">
+            Сожми кулаки • напряги плечи • челюсть<br />
+            Затем медленно отпускай
+        </p>
+
+        <button class="btn btn-danger mt-2" id="angerBtn">
+            Начать
+        </button>
+    </div>
+</div>
+
+<style>
+    .anger-circle{
+        width:180px;height:180px;
+        border-radius:999px;
+        background: radial-gradient(circle,#ef4444,#991b1b);
+        color:white;
+        display:grid;
+        place-items:center;
+        margin:0 auto;
+        box-shadow:0 0 0 0 rgba(239,68,68,.6);
+        transition:box-shadow .4s;
+    }
+    .anger-circle.active{
+        box-shadow:0 0 0 18px rgba(239,68,68,.25);
+    }
+    .anger-time{
+        font-size:2.4rem;
+        font-weight:900;
+    }
+</style>
+
+<script>
+    (() => {
+        const btn = document.getElementById('angerBtn');
+        const timeEl = document.getElementById('angerTime');
+        const circle = document.getElementById('angerCircle');
+        if (!btn || !timeEl) return;
+
+        let t = null;
+        btn.onclick = () => {
+            let sec = 60;
+            btn.disabled = true;
+            circle.classList.add('active');
+            timeEl.textContent = sec;
+
+            t = setInterval(() => {
+                sec--;
+                timeEl.textContent = sec;
+                if (sec <= 0) {
+                    clearInterval(t);
+                    circle.classList.remove('active');
+                    btn.disabled = false;
+                    btn.textContent = 'Готово 💜';
+                }
+            }, 1000);
+        };
+    })();
+</script>

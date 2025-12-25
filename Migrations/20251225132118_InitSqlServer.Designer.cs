@@ -12,15 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FeelShare.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250826164036_StoryReactionsAndComments")]
-    partial class StoryReactionsAndComments
+    [Migration("20251225132118_InitSqlServer")]
+    partial class InitSqlServer
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.7")
+                .HasAnnotation("ProductVersion", "8.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -219,6 +219,104 @@ namespace FeelShare.Migrations
                     b.ToTable("JournalEntry", (string)null);
                 });
 
+            modelBuilder.Entity("FeelShare.Web.Models.MoodAdvice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category", "IsActive");
+
+                    b.ToTable("MoodAdvice", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Category = "bad",
+                            IsActive = true,
+                            Text = "Сегодня тяжело — это нормально. Дайте себе немного заботы и отдыха."
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Category = "neutral",
+                            IsActive = true,
+                            Text = "Неплохо! Маленькие радости дня усиливают устойчивость :)"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Category = "good",
+                            IsActive = true,
+                            Text = "Отличное настроение! Поделитесь теплом с близкими 💜"
+                        });
+                });
+
+            modelBuilder.Entity("FeelShare.Web.Models.MoodSurvey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CreatedAtUtc");
+
+                    b.ToTable("MoodSurvey", (string)null);
+                });
+
+            modelBuilder.Entity("FeelShare.Web.Models.MoodSurveyItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EmotionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SurveyId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmotionId");
+
+                    b.HasIndex("SurveyId");
+
+                    b.ToTable("MoodSurveyItem", (string)null);
+                });
+
             modelBuilder.Entity("FeelShare.Web.Models.PublicStory", b =>
                 {
                     b.Property<int>("Id")
@@ -240,15 +338,36 @@ namespace FeelShare.Migrations
                     b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("ModeratedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModeratedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ModerationNote")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int>("ModerationStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReportsCount")
+                        .HasColumnType("int");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EmotionId");
-
                     b.HasIndex("UserId");
+
+                    b.HasIndex("CreatedAtUtc", "Id");
+
+                    b.HasIndex("EmotionId", "CreatedAtUtc", "Id");
+
+                    b.HasIndex("ModerationStatus", "ReportsCount", "CreatedAtUtc", "Id");
 
                     b.ToTable("PublicStory", (string)null);
                 });
@@ -276,8 +395,7 @@ namespace FeelShare.Migrations
 
                     b.Property<string>("Text")
                         .IsRequired()
-                        .HasMaxLength(1024)
-                        .HasColumnType("nvarchar(1024)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -311,6 +429,37 @@ namespace FeelShare.Migrations
                         .IsUnique();
 
                     b.ToTable("StoryLike", (string)null);
+                });
+
+            modelBuilder.Entity("FeelShare.Web.Models.StoryReport", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("ReportKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("StoryId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoryId", "ReportKey")
+                        .IsUnique();
+
+                    b.ToTable("StoryReport", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -535,6 +684,25 @@ namespace FeelShare.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("FeelShare.Web.Models.MoodSurveyItem", b =>
+                {
+                    b.HasOne("FeelShare.Web.Models.Emotion", "Emotion")
+                        .WithMany()
+                        .HasForeignKey("EmotionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FeelShare.Web.Models.MoodSurvey", "Survey")
+                        .WithMany("Items")
+                        .HasForeignKey("SurveyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Emotion");
+
+                    b.Navigation("Survey");
+                });
+
             modelBuilder.Entity("FeelShare.Web.Models.PublicStory", b =>
                 {
                     b.HasOne("FeelShare.Web.Models.Emotion", "Emotion")
@@ -569,6 +737,17 @@ namespace FeelShare.Migrations
                 {
                     b.HasOne("FeelShare.Web.Models.PublicStory", "Story")
                         .WithMany("Likes")
+                        .HasForeignKey("StoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Story");
+                });
+
+            modelBuilder.Entity("FeelShare.Web.Models.StoryReport", b =>
+                {
+                    b.HasOne("FeelShare.Web.Models.PublicStory", "Story")
+                        .WithMany("Reports")
                         .HasForeignKey("StoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -662,6 +841,11 @@ namespace FeelShare.Migrations
                     b.Navigation("Quotes");
                 });
 
+            modelBuilder.Entity("FeelShare.Web.Models.MoodSurvey", b =>
+                {
+                    b.Navigation("Items");
+                });
+
             modelBuilder.Entity("FeelShare.Web.Models.PublicStory", b =>
                 {
                     b.Navigation("Comments");
@@ -669,6 +853,8 @@ namespace FeelShare.Migrations
                     b.Navigation("Likes");
 
                     b.Navigation("Reactions");
+
+                    b.Navigation("Reports");
                 });
 #pragma warning restore 612, 618
         }

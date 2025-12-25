@@ -5,7 +5,7 @@
     ViewData["Title"] = "Мой дневник";
     var count = Model?.Count() ?? 0;
 
-    // Список эмоций для чипсов-фильтров (distinct по Id)
+    // Список эмоций для чипсов-фильтров 
     var emoList = (Model ?? Enumerable.Empty<FeelShare.Web.Models.JournalEntry>())
         .Select(e => new { Id = e.Emotion.Id, Name = e.Emotion.Name, Icon = e.Emotion.Icon })
         .GroupBy(x => x.Id)
@@ -132,6 +132,130 @@
         .muted {
             color: var(--muted)
         }
+      
+        body.theme-dark {
+            --d-ink: #e5e7eb;
+            --d-muted: #9ca3af;
+            --d-border: #1f2937;
+            --d-soft: #0b1220;
+            --d-card: #020617;
+            --d-shadow: 0 12px 30px rgba(0,0,0,.55);
+        }
+
+            /* Заголовки/тексты */
+            body.theme-dark .hero .title,
+            body.theme-dark .tag,
+            body.theme-dark h1, body.theme-dark h2, body.theme-dark h3 {
+                color: var(--d-ink);
+            }
+
+            body.theme-dark .muted,
+            body.theme-dark .hero .sub {
+                color: var(--d-muted) !important;
+            }
+
+            /* Toolbar */
+            body.theme-dark .toolbar {
+                background: var(--d-card);
+                border-color: var(--d-border);
+                box-shadow: var(--d-shadow);
+            }
+
+            /* Search */
+            body.theme-dark .search input {
+                background: var(--d-soft);
+                color: var(--d-ink);
+                border-color: var(--d-border);
+            }
+
+                body.theme-dark .search input::placeholder {
+                    color: var(--d-muted);
+                }
+
+            body.theme-dark .search svg {
+                color: var(--d-muted);
+            }
+
+            /* Chips */
+            body.theme-dark .chip {
+                background: rgba(99,102,241,.12);
+                color: #c7d2fe;
+                border-color: rgba(99,102,241,.35);
+            }
+
+                body.theme-dark .chip:hover {
+                    background: rgba(99,102,241,.18);
+                }
+
+                body.theme-dark .chip.active {
+                    background: #6366f1;
+                    color: #fff;
+                    border-color: #6366f1;
+                }
+
+            /* Entries */
+            body.theme-dark .entry {
+                background: var(--d-card);
+                border-color: var(--d-border);
+                box-shadow: var(--d-shadow);
+            }
+
+                body.theme-dark .entry .line2 {
+                    color: var(--d-ink);
+                }
+
+            /* Alerts */
+            body.theme-dark .alert-info {
+                background: rgba(59,130,246,.12);
+                border-color: rgba(59,130,246,.25);
+                color: var(--d-ink);
+            }
+
+            body.theme-dark #nores.alert {
+                background: rgba(148,163,184,.08);
+                border-color: var(--d-border);
+                color: var(--d-muted);
+            }
+
+            /* Кнопка на главную в hero */
+            body.theme-dark .hero .btn.btn-light {
+                background: rgba(255,255,255,.08);
+                border-color: rgba(255,255,255,.18);
+                color: var(--d-ink);
+            }
+
+                body.theme-dark .hero .btn.btn-light:hover {
+                    background: rgba(255,255,255,.12);
+                }
+
+            /*МОДАЛКА записи*/
+            body.theme-dark .modal-content {
+                background: var(--d-card);
+                color: var(--d-ink);
+                border: 1px solid var(--d-border);
+            }
+
+            body.theme-dark .modal-header,
+            body.theme-dark .modal-footer {
+                border-color: var(--d-border);
+            }
+
+            body.theme-dark .modal .text-muted {
+                color: var(--d-muted) !important;
+            }
+
+            body.theme-dark .modal .form-control,
+            body.theme-dark .modal .form-select {
+                background: var(--d-soft);
+                border-color: var(--d-border);
+                color: var(--d-ink);
+            }
+
+                body.theme-dark .modal .form-control:focus,
+                body.theme-dark .modal .form-select:focus {
+                    border-color: rgba(59,130,246,.7);
+                    box-shadow: 0 0 0 .2rem rgba(59,130,246,.15);
+                }
     </style>
 }
 
@@ -165,7 +289,7 @@ else
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35M10 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z" /></svg>
             <input id="q" type="search" placeholder="Поиск по тексту записи…" />
         </div>
-        <div class="d-flex align-items-center gap-2 flex-wrap">
+        <div class="d-flex align-items-center gap-2 flex-wrap" id="chips">
             <span class="chip active" data-em="all">Все</span>
             @foreach (var em in emoList)
             {
@@ -173,6 +297,9 @@ else
             }
         </div>
     </div>
+
+
+
 
     <!-- Список записей -->
     <div id="list" class="list-group">
@@ -199,9 +326,9 @@ else
 
 @section Modals {
     <div class="modal fade" id="entryModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content" id="entryModalContent"><!-- partial сюда --></div>
-        </div>
+        < class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" id="entryModalContent"></div>
+        
     </div>
 }
 
@@ -211,7 +338,7 @@ else
             const modalEl = document.getElementById('entryModal');
             const modalContent = document.getElementById('entryModalContent');
 
-            // Перестраховка: модалка должна быть прямым потомком body
+           
             if (modalEl && modalEl.parentElement !== document.body) {
                 document.body.appendChild(modalEl);
             }
@@ -225,7 +352,7 @@ else
                             headers: { 'X-Requested-With': 'XMLHttpRequest' }
                         });
 
-                        // Покажем, ПОЧЕМУ не ок (на будущее)
+                     
                         if (!resp.ok) {
                             const txt = await resp.text().catch(() => '');
                             console.error('Entry load failed', resp.status, txt?.slice?.(0, 300));
@@ -262,6 +389,60 @@ else
                     });
                 }
             }
+        })();
+    </script>
+    <script>
+        (function () {
+            const q = document.getElementById('q');
+            const chips = document.getElementById('chips');
+            const list = document.getElementById('list');
+            const items = list ? Array.from(list.querySelectorAll('.entry')) : [];
+            const nores = document.getElementById('nores');
+
+            let selectedMood = ''; 
+            const normalize = s => (s || '').toLowerCase();
+
+            function applyFilter() {
+                const qv = normalize(q?.value);
+                let shown = 0;
+
+                items.forEach(el => {
+                    const text = normalize(el.dataset.text);
+                    const mood = (el.dataset.em || '').toString();
+                    const passText = !qv || text.includes(qv);
+                    const passMood = !selectedMood || mood === selectedMood;
+
+                    const visible = passText && passMood;
+                    el.classList.toggle('d-none', !visible);
+                    if (visible) shown++;
+                });
+
+                if (nores) nores.classList.toggle('d-none', shown > 0);
+            }
+
+            // Клики по чипам эмоций
+            chips?.addEventListener('click', (e) => {
+                const chip = e.target.closest('.chip');
+                if (!chip) return;
+
+                chips.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+
+                const em = (chip.dataset.em || '').toString();
+                selectedMood = (em === 'all') ? '' : em;
+
+                applyFilter();
+            });
+
+      
+            let t;
+            q?.addEventListener('input', () => {
+                clearTimeout(t);
+                t = setTimeout(applyFilter, 200);
+            });
+
+       
+            applyFilter();
         })();
     </script>
 }

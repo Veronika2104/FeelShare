@@ -5,54 +5,215 @@
 }
 
 @section Styles {
-<style>
-    :root{
-        --ink:#0f172a; --muted:#6b7280; --card:#fff; --border:#e5e7eb; --shadow:0 10px 25px rgba(2,6,23,.06);
-        --acc1:#8b5cf6; --acc2:#06b6d4;
-    }
-    .admin-hero{
-        border-radius: 20px; padding: 22px 0; margin-bottom: 18px;
-        background: linear-gradient(135deg,var(--acc1),var(--acc2));
-        color:#fff; position:relative; overflow:hidden; box-shadow: var(--shadow);
-    }
-    .admin-hero .art{position:absolute; inset:-20% -10% auto auto; width:60%; height:160%;
-        background: radial-gradient(closest-side,rgba(255,255,255,.25),transparent 65%);
-        transform: rotate(18deg); filter: blur(8px);}
-    .crumbs{ --bs-breadcrumb-divider: "›"; font-size:.95rem; }
-    .crumbs .breadcrumb-item + .breadcrumb-item::before{ color: rgba(255,255,255,.8); }
-    .crumbs a{ color:#fff; opacity:.9; text-decoration:none; }
-    .crumbs a:hover{ opacity:1; text-decoration:underline; }
+    <style>
+        :root {
+            --ink: #0f172a;
+            --muted: #6b7280;
+            --card: #fff;
+            --border: #e5e7eb;
+            --shadow: 0 10px 25px rgba(2,6,23,.06);
+            --acc1: #8b5cf6;
+            --acc2: #06b6d4;
+        }
 
-    .topbar{ display:grid; grid-template-columns:1fr auto; gap:12px; align-items:center; }
-    .badge-soft{ background: rgba(255,255,255,.2); color:#fff; padding:.2rem .55rem; border-radius:999px; font-weight:600; }
+        .admin-hero {
+            border-radius: 20px;
+            padding: 22px 0;
+            margin-bottom: 18px;
+            background: linear-gradient(135deg,var(--acc1),var(--acc2));
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
 
-    .actions-sticky{
-        position:sticky; top:18px; z-index:10; display:flex; gap:.5rem; flex-wrap:wrap;
-    }
-    .btn-ghost{
-        border:1px dashed var(--border); color:var(--muted); background:#fff;
-        padding:.45rem .85rem; border-radius:.65rem; text-decoration:none;
-    }
-    .btn-ghost:hover{ border-color: var(--acc1); color: var(--acc1); }
+            .admin-hero .art {
+                position: absolute;
+                inset: -20% -10% auto auto;
+                width: 60%;
+                height: 160%;
+                background: radial-gradient(closest-side,rgba(255,255,255,.25),transparent 65%);
+                transform: rotate(18deg);
+                filter: blur(8px);
+            }
 
-    .card-ui{ background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); }
-    .card-ui .head{ padding:14px 16px; border-bottom:1px solid var(--border); font-weight:600; color:var(--ink); }
-    .form-control, .form-select{ border-color:var(--border); }
-    .form-control:focus, .form-select:focus{
-        border-color:#6366f1; box-shadow:0 0 0 .25rem rgba(99,102,241,.12);
-    }
+        .crumbs {
+            --bs-breadcrumb-divider: "›";
+            font-size: .95rem;
+        }
 
-    .quote-preview{ background:#f9fafb; border-left:3px solid var(--acc1); border-radius:8px; padding:14px 16px; }
-    .quote-preview blockquote{ margin:0; font-size:1.1rem; line-height:1.6; color:var(--ink);
-        quotes:"\201C" "\201D" "\2018" "\2019"; }
-    .quote-preview blockquote::before{ content:open-quote; margin-right:.1rem; }
-    .quote-preview footer{ color:var(--muted); }
+            .crumbs .breadcrumb-item + .breadcrumb-item::before {
+                color: rgba(255,255,255,.8);
+            }
 
-    .pill{
-        display:inline-flex; align-items:center; gap:.4rem;
-        padding:.35rem .65rem; border-radius:999px; background:#eef2ff; color:#4338ca; font-weight:600; font-size:.85rem;
-    }
-</style>
+            .crumbs a {
+                color: #fff;
+                opacity: .9;
+                text-decoration: none;
+            }
+
+                .crumbs a:hover {
+                    opacity: 1;
+                    text-decoration: underline;
+                }
+
+        .topbar {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .badge-soft {
+            background: rgba(255,255,255,.2);
+            color: #fff;
+            padding: .2rem .55rem;
+            border-radius: 999px;
+            font-weight: 600;
+        }
+
+        .actions-sticky {
+            position: sticky;
+            top: 18px;
+            z-index: 10;
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-ghost {
+            border: 1px dashed var(--border);
+            color: var(--muted);
+            background: #fff;
+            padding: .45rem .85rem;
+            border-radius: .65rem;
+            text-decoration: none;
+        }
+
+            .btn-ghost:hover {
+                border-color: var(--acc1);
+                color: var(--acc1);
+            }
+
+        .card-ui {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+        }
+
+            .card-ui .head {
+                padding: 14px 16px;
+                border-bottom: 1px solid var(--border);
+                font-weight: 600;
+                color: var(--ink);
+            }
+
+        .form-control, .form-select {
+            border-color: var(--border);
+        }
+
+            .form-control:focus, .form-select:focus {
+                border-color: #6366f1;
+                box-shadow: 0 0 0 .25rem rgba(99,102,241,.12);
+            }
+
+        .quote-preview {
+            background: #f9fafb;
+            border-left: 3px solid var(--acc1);
+            border-radius: 8px;
+            padding: 14px 16px;
+        }
+
+            .quote-preview blockquote {
+                margin: 0;
+                font-size: 1.1rem;
+                line-height: 1.6;
+                color: var(--ink);
+                quotes: "\201C" "\201D" "\2018" "\2019";
+            }
+
+                .quote-preview blockquote::before {
+                    content: open-quote;
+                    margin-right: .1rem;
+                }
+
+            .quote-preview footer {
+                color: var(--muted);
+            }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .35rem .65rem;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #4338ca;
+            font-weight: 600;
+            font-size: .85rem;
+        }
+
+        /* Тёмная тема для админки цитат */
+        body.theme-dark {
+            --q-bg: #020617;
+            --q-bg-soft: #0b1220;
+            --q-border: #1f2937;
+            --q-text: #e5e7eb;
+            --q-muted: #9ca3af;
+            --q-head: #f8fafc;
+        }
+
+            body.theme-dark h2 {
+                color: var(--q-head);
+            }
+
+            body.theme-dark .form-control,
+            body.theme-dark .form-select {
+                background: var(--q-bg-soft) !important;
+                border-color: var(--q-border) !important;
+                color: var(--q-text) !important;
+            }
+
+                body.theme-dark .form-control::placeholder {
+                    color: var(--q-muted) !important;
+                }
+
+                body.theme-dark .form-control:focus,
+                body.theme-dark .form-select:focus {
+                    border-color: rgba(59,130,246,.7) !important;
+                    box-shadow: 0 0 0 .2rem rgba(59,130,246,.15) !important;
+                }
+
+            body.theme-dark .btn-secondary {
+                background: #334155;
+                border-color: #334155;
+                color: #e5e7eb;
+            }
+
+                body.theme-dark .btn-secondary:hover {
+                    background: #475569;
+                }
+
+            body.theme-dark .btn-primary {
+                background: #2563eb;
+                border-color: #2563eb;
+            }
+
+                body.theme-dark .btn-primary:hover {
+                    background: #1d4ed8;
+                }
+
+            body.theme-dark table.table {
+                background: var(--q-bg);
+                color: var(--q-text);
+                border-color: var(--q-border);
+            }
+
+            body.theme-dark .text-muted {
+                color: var(--q-muted) !important;
+            }
+    </style>
 }
 
 <!-- HERO -->
@@ -64,11 +225,13 @@
                 <li class="breadcrumb-item active text-white-50" aria-current="page">Редактировать</li>
             </ol>
         </nav>
+
         <div class="topbar">
             <div>
                 <h1 class="h3 fw-bold m-0">Редактировать цитату</h1>
                 <div class="text-white-50">ID: @Model.Id</div>
             </div>
+
             <div class="actions-sticky">
                 <button type="submit" form="quoteForm" class="btn btn-light text-primary fw-semibold">
                     Сохранить
@@ -79,7 +242,6 @@
     </div>
     <div class="art" aria-hidden="true"></div>
 </section>
-
 
 <div class="container px-3">
     <form id="quoteForm" method="post">
@@ -96,10 +258,12 @@
                         <span>Текст цитаты</span>
                         <span class="badge-soft">редактирование</span>
                     </div>
+
                     <div class="p-3 p-md-4">
                         <label class="form-label fw-semibold">Текст</label>
                         <textarea asp-for="Text" class="form-control" rows="6" maxlength="1000" id="qText"
                                   placeholder="Например: «И это пройдёт.»"></textarea>
+
                         <div class="d-flex justify-content-between align-items-center mt-1">
                             <span class="text-danger" asp-validation-for="Text"></span>
                             <small class="text-muted"><span id="qTextCnt">0</span>/1000</small>
@@ -108,20 +272,28 @@
                         <div class="mt-3">
                             <label class="form-label fw-semibold">Автор (необязательно)</label>
                             <input asp-for="Author" class="form-control" id="qAuthor" maxlength="128" placeholder="Автор / источник" />
+
                             <div class="d-flex justify-content-between align-items-center mt-1">
                                 <span class="text-danger" asp-validation-for="Author"></span>
                                 <small class="text-muted"><span id="qAuthorCnt">0</span>/128</small>
                             </div>
                         </div>
 
+                        <!-- Предпросмотр -->
                         <div class="mt-4">
                             <div class="pill">Предпросмотр</div>
                             <div class="quote-preview mt-2">
                                 <figure class="mb-0">
                                     <blockquote id="pvText">@Model.Text</blockquote>
                                     <figcaption class="mt-1" id="pvAuthor">
-                                        @if (!string.IsNullOrWhiteSpace(Model.Author)) { @Model.Author }
-                                        else { <span class="text-muted">Автор не указан</span> }
+                                        @if (!string.IsNullOrWhiteSpace(Model.Author))
+                                        {
+                                            @Model.Author
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Автор не указан</span>
+                                        }
                                     </figcaption>
                                 </figure>
                             </div>
@@ -168,6 +340,7 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         (function () {
+            // Счётчики/предпросмотр 
             const txt = document.getElementById('qText');
             const aut = document.getElementById('qAuthor');
             const cntT = document.getElementById('qTextCnt');
@@ -191,11 +364,10 @@
                 el.style.height = (el.scrollHeight + 2) + 'px';
             }
 
-            // init
             updateCount(txt, cntT); updateCount(aut, cntA);
             updatePreview(); grow(txt);
 
-            ['input','change'].forEach(ev => {
+            ['input', 'change'].forEach(ev => {
                 if (txt) txt.addEventListener(ev, () => { updateCount(txt, cntT); updatePreview(); grow(txt); });
                 if (aut) aut.addEventListener(ev, () => { updateCount(aut, cntA); updatePreview(); });
             });

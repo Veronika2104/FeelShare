@@ -7,17 +7,18 @@
 @section Styles {
     <style>
         :root {
-            --ink: #0f172a; /* Основной тёмный текст (чернила) */
-            --muted: #6b7280; /* Приглушённый серый текст */
-            --card: #fff; /* Цвет карточек (фон белый) */
-            --border: #e5e7eb; /* Цвет границ */
-            --shadow: 0 10px 25px rgba(2,6,23,.06); /* Тень для карточек */
-            --acc1: #8b5cf6; /* Фиолетовый (акцент) */
-            --acc2: #06b6d4; /* Бирюзовый (акцент) */
-            --acc3: #22c55e; /* Зелёный (акцент) */
-            --acc4: #f59e0b; /* Жёлтый (акцент) */
+            --ink: #0f172a; /* основной текст */
+            --muted: #6b7280; /* приглушённый */
+            --card: #fff; /* фон карточек */
+            --border: #e5e7eb; /* границы */
+            --shadow: 0 10px 25px rgba(2,6,23,.06); /* тень */
+            --acc1: #8b5cf6; /* акценты */
+            --acc2: #06b6d4;
+            --acc3: #22c55e;
+            --acc4: #f59e0b;
         }
 
+        /* Верхняя hero плашка */
         .admin-hero {
             border-radius: 20px;
             padding: 22px 0;
@@ -39,6 +40,7 @@
                 filter: blur(8px);
             }
 
+       
         .crumbs {
             --bs-breadcrumb-divider: "›";
             font-size: .95rem;
@@ -59,6 +61,7 @@
                     text-decoration: underline;
                 }
 
+        /* Верхняя панель с кнопками */
         .topbar {
             display: grid;
             grid-template-columns: 1fr auto;
@@ -80,6 +83,7 @@
                 color: var(--acc1);
             }
 
+        /* Карточки */
         .card-ui {
             background: var(--card);
             border: 1px solid var(--border);
@@ -94,6 +98,7 @@
                 color: var(--ink);
             }
 
+        /* Input/Select */
         .form-control, .form-select {
             border-color: var(--border);
         }
@@ -103,30 +108,7 @@
                 box-shadow: 0 0 0 .25rem rgba(99,102,241,.12);
             }
 
-        .quote-preview {
-            background: #f9fafb;
-            border-left: 3px solid var(--acc1);
-            border-radius: 8px;
-            padding: 14px 16px;
-        }
-
-            .quote-preview blockquote {
-                margin: 0;
-                font-size: 1.1rem;
-                line-height: 1.6;
-                color: var(--ink);
-                quotes: "\201C" "\201D" "\2018" "\2019";
-            }
-
-                .quote-preview blockquote::before {
-                    content: open-quote;
-                    margin-right: .1rem;
-                }
-
-            .quote-preview footer {
-                color: var(--muted);
-            }
-
+        /* Плашка предпросмотр */
         .pill {
             display: inline-flex;
             align-items: center;
@@ -147,23 +129,94 @@
             gap: .5rem;
             flex-wrap: wrap;
         }
+
+        /*  dark theme фиксы именно для create */
+        body.theme-dark .admin-hero {
+            box-shadow: 0 10px 26px rgba(0,0,0,.65);
+        }
+
+        body.theme-dark .btn-ghost {
+            background: rgba(255,255,255,.08);
+            border-color: rgba(255,255,255,.18);
+            color: #e5e7eb;
+        }
+
+            body.theme-dark .btn-ghost:hover {
+                border-color: rgba(255,255,255,.35);
+                color: #fff;
+            }
+
+        body.theme-dark .card-ui {
+            background: #020617 !important;
+            border-color: #1f2937 !important;
+            color: #e5e7eb !important;
+            box-shadow: 0 10px 26px rgba(0,0,0,.65);
+        }
+
+            body.theme-dark .card-ui .head {
+                background: rgba(255,255,255,.03);
+                border-bottom-color: #1f2937 !important;
+                color: #f8fafc !important;
+            }
+
+        body.theme-dark .form-label {
+            color: #e5e7eb !important;
+        }
+
+        body.theme-dark .form-text,
+        body.theme-dark small.text-muted,
+        body.theme-dark .text-muted {
+            color: #9ca3af !important;
+        }
+
+        body.theme-dark .pill {
+            background: rgba(99,102,241,.18);
+            color: #c7d2fe;
+        }
+
+        body.theme-dark textarea.form-control,
+        body.theme-dark input.form-control,
+        body.theme-dark select.form-select {
+            background: #0b1220 !important;
+            border-color: #1f2937 !important;
+            color: #e5e7eb !important;
+        }
+
+        body.theme-dark .alert-danger {
+            background: rgba(239,68,68,.12);
+            border-color: rgba(239,68,68,.35);
+            color: #fecaca;
+        }
+
+        body.theme-dark .text-danger {
+            color: #fca5a5 !important;
+        }
+
+        body.theme-dark .form-check-label {
+            color: #e5e7eb !important;
+        }
     </style>
 }
 
-
+<!-- Верхняя шапка страницы -->
 <section class="admin-hero">
     <div class="container px-3">
         <nav class="crumbs" aria-label="breadcrumb">
             <ol class="breadcrumb mb-2">
-                <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Quotes" asp-action="Index">Цитаты</a></li>
+                <li class="breadcrumb-item">
+                    <a asp-area="Admin" asp-controller="Quotes" asp-action="Index">Цитаты</a>
+                </li>
                 <li class="breadcrumb-item active text-white-50" aria-current="page">Добавить</li>
             </ol>
         </nav>
+
         <div class="topbar">
             <div>
                 <h1 class="h3 fw-bold m-0">Добавить цитату</h1>
                 <div class="text-white-50">Заполните поля, посмотрите предпросмотр и сохраните.</div>
             </div>
+
+            <!-- Кнопки сверху отправляют форму по id="quoteForm" -->
             <div class="actions-sticky">
                 <button type="submit" form="quoteForm" name="saveAction" value="save-back" class="btn btn-primary">
                     Сохранить и назад
@@ -178,12 +231,11 @@
     <div class="art" aria-hidden="true"></div>
 </section>
 
-
-
 <div class="container px-3">
     <form asp-area="Admin" asp-controller="Quotes" asp-action="Create" method="post" id="quoteForm" novalidate>
         @Html.AntiForgeryToken()
 
+        <!-- Ошибки модели общим списком -->
         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
         <div class="row g-4">
@@ -195,6 +247,7 @@
                         <label class="form-label fw-semibold">Текст</label>
                         <textarea asp-for="Text" class="form-control" rows="6" maxlength="1024" id="qText"
                                   placeholder="Например: «И это пройдёт.»"></textarea>
+
                         <div class="d-flex justify-content-between align-items-center mt-1">
                             <span class="text-danger" asp-validation-for="Text"></span>
                             <small class="text-muted"><span id="qTextCnt">0</span>/1024</small>
@@ -202,13 +255,16 @@
 
                         <div class="mt-3">
                             <label class="form-label fw-semibold">Автор (необязательно)</label>
-                            <input asp-for="Author" class="form-control" id="qAuthor" maxlength="128" placeholder="Автор / источник" />
+                            <input asp-for="Author" class="form-control" id="qAuthor" maxlength="128"
+                                   placeholder="Автор / источник" />
+
                             <div class="d-flex justify-content-between align-items-center mt-1">
                                 <span class="text-danger" asp-validation-for="Author"></span>
                                 <small class="text-muted"><span id="qAuthorCnt">0</span>/128</small>
                             </div>
                         </div>
 
+                        <!-- Предпросмотр в реальном времени -->
                         <div class="mt-4">
                             <div class="pill">Предпросмотр</div>
                             <div class="quote-preview mt-2">
@@ -231,7 +287,7 @@
                 </div>
             </div>
 
-            <!-- Правая колонка: параметры -->
+            <!-- Правая колонка: параметры цитаты -->
             <div class="col-lg-4">
                 <div class="card-ui mb-3">
                     <div class="head">Параметры</div>
@@ -257,6 +313,7 @@
                     </div>
                 </div>
 
+                <!-- На мобилке дублирую кнопки, чтобы не тянуться к topbar -->
                 <div class="d-grid d-lg-none gap-2">
                     <button type="submit" name="saveAction" value="save-back" class="btn btn-primary">
                         Сохранить и назад
@@ -275,6 +332,7 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         (function () {
+            //  JS: счётчики + предпросмотр + авто-рост textarea
             const txt = document.getElementById('qText');
             const aut = document.getElementById('qAuthor');
             const cntT = document.getElementById('qTextCnt');
@@ -286,12 +344,15 @@
                 if (!input || !label) return;
                 label.textContent = (input.value || '').length;
             }
+
             function updatePreview() {
                 const t = (txt?.value || '').trim();
                 pvT.textContent = t || '(текст цитаты)';
+
                 const a = (aut?.value || '').trim();
                 pvA.innerHTML = a ? a : '<span class="text-muted">Автор не указан</span>';
             }
+
             function grow(el) {
                 if (!el) return;
                 el.style.height = 'auto';

@@ -1,5 +1,6 @@
 ﻿@model FeelShare.Web.ViewModels.HomeIndexVM
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@removeTagHelper Microsoft.AspNetCore.Mvc.TagHelpers.OptionTagHelper, Microsoft.AspNetCore.Mvc.TagHelpers
 @using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
@@ -33,6 +34,7 @@
             --shadow: 0 12px 30px rgba(2,6,23,.08);
         }
 
+        
         .hero {
             border-radius: 22px;
             padding: 28px 22px;
@@ -42,18 +44,23 @@
             box-shadow: var(--shadow);
         }
 
-            .hero .title {
-                font-weight: 800;
-                letter-spacing: .2px;
-                margin: 0
-            }
+        body.theme-dark .hero {
+            background: linear-gradient(90deg, rgba(129,140,248,0.9), rgba(56,189,248,0.9));
+            box-shadow: 0 14px 40px rgba(15,23,42,0.6), 0 0 0 1px rgba(15,23,42,0.25);
+        }
 
-            .hero .sub {
-                opacity: .92;
-                margin: .35rem 0 0
-            }
+        .hero .title {
+            font-weight: 800;
+            letter-spacing: .2px;
+            margin: 0;
+        }
 
-        /* Карточки эмоций */
+        .hero .sub {
+            opacity: .92;
+            margin: .35rem 0 0;
+        }
+
+       
         .emo-card {
             border: 1px solid var(--border);
             border-radius: 16px;
@@ -72,16 +79,24 @@
             }
 
         .emo-ico {
-            font-size: 42px
+            font-size: 42px;
         }
 
         .emo-name {
             margin-top: 6px;
             font-weight: 600;
-            color: #111827
+            color: #111827;
         }
 
-        /* Карточки историй */
+        body.theme-dark .emo-card {
+            background: #020617;
+            border-color: #1f2937;
+        }
+
+        body.theme-dark .emo-name {
+            color: #e5e7eb;
+        }
+
         .story {
             border: 1px solid var(--border);
             border-radius: 16px;
@@ -102,34 +117,197 @@
                 white-space: pre-wrap;
             }
 
-        /* Кнопки реакций */
-        .rx-btn {
-            border-radius: 999px;
+        body.theme-dark .story {
+            background: rgba(15,23,42,.96);
+            border-color: #1f2937;
+            color: #e5e7eb;
         }
 
-            .rx-btn.btn-outline-primary {
-                border-color: #c7d2fe
+            body.theme-dark .story .meta {
+                color: #9ca3af;
             }
 
-            .rx-btn .badge {
-                border-radius: 10px;
+            body.theme-dark .story input.form-control {
+                background: rgba(15,23,42,.9);
+                color: #f1f5f9;
+                border: 1px solid rgba(148,163,184,.7);
             }
 
-        /* Фильтр чипсы */
-        .chips .btn {
-            border-radius: 999px;
-        }
+                body.theme-dark .story input.form-control::placeholder {
+                    color: rgba(148,163,184,.8);
+                }
 
-        /* Блок формы публикации истории — просто выровнять внешне */
+        
         .share-card {
             border: 1px dashed var(--border);
             background: var(--soft);
             border-radius: 16px;
         }
+
+        .share-card-inner {
+            border-radius: 14px;
+        }
+
+     
+        body.theme-dark .share-card {
+            background: #020617;
+            border-color: #1f2937;
+            color: #e5e7eb;
+            box-shadow: 0 10px 25px rgba(0,0,0,.5);
+        }
+
+       
+        body.theme-dark .share-card-inner {
+            background: #0b1120;
+            border-color: #1f2937;
+            color: #e5e7eb;
+        }
+
+         
+            body.theme-dark .share-card-inner .card-body {
+                background: transparent;
+            }
+
+          
+            body.theme-dark .share-card-inner .alert {
+                background: transparent;
+                border-color: transparent;
+                color: #e5e7eb;
+            }
+
+                body.theme-dark .share-card-inner .alert a {
+                    color: #38bdf8;
+                }
+
+          
+            body.theme-dark .share-card-inner .form-control,
+            body.theme-dark .share-card-inner .form-select {
+                background-color: #020617;
+                border-color: #1f2937;
+                color: #f1f5f9;
+            }
+
+                body.theme-dark .share-card-inner .form-control::placeholder {
+                    color: rgba(148,163,184,.8);
+                }
+
+          
+            body.theme-dark .share-card-inner .btn-primary {
+                background: linear-gradient(90deg,#4f46e5,#22c55e);
+                border-color: transparent;
+                color: #f9fafb;
+            }
+
+                body.theme-dark .share-card-inner .btn-primary:hover {
+                    filter: brightness(1.05);
+                }
+
+       
+        .chips .btn {
+            border-radius: 999px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: .75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+            .toolbar .form-select {
+                min-width: 180px;
+            }
+
+                .toolbar .form-select.is-week {
+                    min-width: 160px;
+                }
+
+        body.theme-dark .toolbar .form-select,
+        body.theme-dark .chips .btn {
+            background-color: #020617;
+            border-color: #1f2937;
+            color: #e5e7eb;
+        }
+
+            body.theme-dark .chips .btn.active {
+                background-color: #2563eb;
+                color: #f9fafb;
+            }
+
+    
+        body.theme-dark .form-control,
+        body.theme-dark .form-select {
+            background-color: #020617;
+            color: #f1f5f9;
+            border-color: #1f2937;
+        }
+
+            body.theme-dark .form-control::placeholder {
+                color: rgba(148,163,184,.75);
+            }
+
+        body.theme-dark main .share-card {
+            background: #020617 !important;
+            border-color: #334155 !important;
+            color: #e5e7eb !important;
+            box-shadow: 0 6px 20px rgba(0,0,0,.5) !important;
+        }
+
+        .story .emo {
+            font-size: 1rem;
+            line-height: 1;
+            background: none !important;
+            border: 0 !important;
+            padding: 0 !important;
+        }
+
+        .btn-icon-report {
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(148,163,184,.6);
+            background: transparent;
+            padding: 0;
+        }
+
+            .btn-icon-report:hover {
+                border-color: #ef4444;
+                color: #ef4444;
+            }
+
+        .story-head {
+            display: flex !important;
+            align-items: flex-start;
+            justify-content: space-between;
+            width: 100% !important; 
+        }
+
+        .story-emotion {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .story-actions {
+            display: flex !important;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto !important; 
+            justify-content: flex-end;
+        }
+
+        .story-date {
+            font-size: 11px; 
+            opacity: 0.45; 
+            white-space: nowrap;
+            user-select: none;
+        }
     </style>
 }
-
-
 
 
 <!-- HERO -->
@@ -166,130 +344,215 @@ else
 
 <!-- Публикация анонимной истории -->
 <div class="share-card p-3 mb-4">
-    @await Html.PartialAsync("_CreateStoryForm",
+    @await Html.PartialAsync("~/Views/Shared/CreateStory.cshtml",
             new FeelShare.Web.ViewModels.CreateStoryVM
     {
         Moods = Model.Moods,
         SelectedEmotionId = Model.SelectedEmotionId,
-        ReturnUrl = Url.Action("Index", "Home", new { emotionId = Model.SelectedEmotionId })
+        ReturnUrl = Url.Action("Index", "Home", new
+        {
+            emotionId = Model.SelectedEmotionId,
+            period = Model.Period,
+            weekOffset = Model.WeekOffset
+        })
     })
 </div>
 
-<!-- Фильтр по эмоциям -->
-<div class="mb-3 chips">
-    <div class="btn-group" role="group">
-        <a class="btn btn-outline-secondary @(Model.SelectedEmotionId == null ? "active" : "")"
-           asp-action="Index">Все</a>
-        @foreach (var m in Model.Moods)
-        {
-            <a class="btn btn-outline-secondary @(Model.SelectedEmotionId == m.Id ? "active" : "")"
-               asp-action="Index" asp-route-emotionId="@m.Id">@m.Icon @m.Name</a>
-        }
+<div id="feedRoot">
+    <!-- Эмоции  -->
+    <div class="mb-2 chips">
+        <div class="btn-group" role="group">
+            <a class="btn btn-outline-secondary @(Model.SelectedEmotionId == null ? "active" : "") js-filter-link"
+               asp-action="Index"
+               asp-route-period="@Model.Period"
+               asp-route-weekOffset="@(Model.WeekOffset ?? 0)">Все</a>
+            @foreach (var m in Model.Moods)
+            {
+                <a class="btn btn-outline-secondary @(Model.SelectedEmotionId == m.Id ? "active" : "") js-filter-link"
+                   asp-action="Index"
+                   asp-route-emotionId="@m.Id"
+                   asp-route-period="@Model.Period"
+                   asp-route-weekOffset="@(Model.WeekOffset ?? 0)">@m.Icon @m.Name</a>
+            }
+        </div>
     </div>
-</div>
 
-<!-- Лента историй -->
-@if (Model.Stories == null || !Model.Stories.Any())
-{
-    <div class="alert alert-info">Историй пока нет. Будьте первым!</div>
-}
-else
-{
-    <div class="vstack gap-3">
-        @foreach (var s in Model.Stories)
+    <!-- Период: выпадающий список -->
+    <div class="mb-3 toolbar">
+        <div class="d-flex align-items-center gap-2">
+            <label class="form-label mb-0 small text-muted">Период</label>
+            <select id="periodSelect" class="form-select" data-current-em="@Model.SelectedEmotionId">
+                <option value="" selected="@(string.IsNullOrEmpty(Model.Period))">Все</option>
+                <option value="today" selected="@(Model.Period == "today")">Сегодня</option>
+                <option value="7d" selected="@(Model.Period == "7d")">За 7 дней</option>
+                <option value="30d" selected="@(Model.Period == "30d")">За месяц</option>
+                <option value="year" selected="@(Model.Period == "year")">За год</option>
+                <option value="week" selected="@(Model.Period == "week")">По неделям</option>
+            </select>
+        </div>
+
+        <!-- Показываем только при period=week -->
+        <div id="weekWrap" class="d-flex align-items-center gap-2 @(Model.Period=="week" ? "" : "d-none")">
+            <label class="form-label mb-0 small text-muted">Неделя</label>
+            <select id="weekSelect" class="form-select form-select-sm is-week js-week">
+                @for (int w = 0; w <= 8; w++)
+                {
+                    var text = w == 0 ? "Эта неделя" : (w == 1 ? "Прошлая" : $"{w} нед. назад");
+                    <option value="@w" @(Model.WeekOffset == w ? "selected" : "")>@text</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <!-- Лента историй -->
+    <div id="storiesContainer">
+        @if (Model.Stories == null || !Model.Stories.Any())
         {
-            <div id="s-@s.Id" class="story card @(sid == s.Id.ToString() ? "highlight" : "")">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2 meta">
-                        <div class="small">@s.EmotionIcon @s.EmotionName</div>
-                        <div class="small">@s.CreatedAtUtc.ToLocalTime().ToString("g")</div>
-                    </div>
+            <div class="alert alert-info">Историй пока нет. Будьте первым!</div>
+        }
+        else
+        {
+            <div class="vstack gap-3" id="storiesList">
+                @foreach (var s in Model.Stories)
+                {
+                    <div id="s-@s.Id" class="story card @(sid == s.Id.ToString() ? "highlight" : "")">
+                        <div class="card-body">
 
-                    <div class="text" style="white-space:pre-wrap">@s.Content</div>
-
-                    <div class="mt-3 d-flex align-items-center gap-2 flex-wrap">
-                        @foreach (var r in reactionList)
-                        {
-                            var isOn = s.MyReactions != null && s.MyReactions.Contains(r.key);
-                            var btn = isOn ? "btn-primary" : "btn-outline-primary";
-                            var cnt = (s.ReactionCounts != null && s.ReactionCounts.TryGetValue(r.key, out var tmp)) ? tmp : 0;
-
-                            <form method="post"
-                                  asp-route="StoryReactToggle"
-                                  asp-route-id="@s.Id"
-                                  asp-route-reaction="@r.key"
-                                  class="d-inline js-react-form"
-                                  data-story="@s.Id" data-key="@r.key">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm @btn js-react-btn">
-                                    @r.emoji @r.text
-                                    <span class="badge ms-1 js-count">@cnt</span>
-                                </button>
-                            </form>
-                        }
-
-                        <span class="text-muted small ms-2 js-cmt-counter" data-count="@s.CommentsCount">
-                            💬 @s.CommentsCount
-                        </span>
-                    </div>
-
-                    <hr class="my-3" />
-
-                    <!-- Комментарии -->
-                    <div id="c-@s.Id" class="vstack gap-2">
-                        @await Html.PartialAsync("_CommentsChunk", s.LatestComments)
-                    </div>
-
-                    @if (s.CommentsCount > (s.LatestComments?.Count ?? 0))
-                    {
-                        <button type="button"
-                                class="btn btn-link btn-sm js-more-comments"
-                                data-story="@s.Id"
-                                data-loaded="@(s.LatestComments?.Count ?? 0)"
-                                data-total="@s.CommentsCount">
-                            Показать ещё
-                        </button>
-                    }
-
-                    <div class="mt-2">
-                        @if (isAuth)
-                        {
-                            <form method="post"
-                                  asp-route="StoryCommentCreate"
-                                  asp-route-id="@s.Id"
-                                  class="js-comment-form"
-                                  data-story="@s.Id">
-                                @Html.AntiForgeryToken()
-                                <div class="input-group">
-                                    <input name="content" class="form-control" placeholder="Написать комментарий…" maxlength="4000" required />
-                                    <button class="btn btn-outline-primary" type="submit">Отправить</button>
+                            <!-- ШАПКА: эмоция слева, справа дата + флаг -->
+                            <div class="story-head">
+                                <div class="story-emotion">
+                                    <span class="emo">@s.EmotionIcon</span>
+                                    <span class="emo-name">@s.EmotionName</span>
                                 </div>
-                            </form>
-                        }
-                        else
-                        {
-                            <a class="btn btn-sm btn-outline-secondary"
-                               asp-controller="Account" asp-action="Login" asp-route-returnUrl="/">Войдите, чтобы комментировать</a>
-                        }
+
+                                <div class="story-actions">
+                                    <span class="story-date">@s.CreatedAtUtc.ToLocalTime().ToString("g")</span>
+
+                                    <form method="post"
+                                          asp-route="StoryReport"
+                                          asp-route-id="@s.Id"
+                                          class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="returnUrl" value="@Url.Action("Index","Home", new {
+              emotionId = Model.SelectedEmotionId,
+              period = Model.Period,
+              weekOffset = Model.WeekOffset,
+              sid = s.Id
+          })" />
+                                        <input type="hidden" name="reason" value="abuse" />
+                                        <button type="submit" class="btn btn-icon-report" title="Пожаловаться" aria-label="Пожаловаться">
+                                            <i class="bi bi-flag"></i>
+                                        </button>
+                                    </form>
+                                </div>
+
+                            </div>
+
+                            <!-- ТЕКСТ -->
+                            <div class="story-text">@s.Content</div>
+
+                            <!-- РЕАКЦИИ -->
+                            <div class="mt-3 d-flex align-items-center gap-2 flex-wrap">
+                                @foreach (var r in reactionList)
+                                {
+                                    var isOn = s.MyReactions != null && s.MyReactions.Contains(r.key);
+                                    var btn = isOn ? "btn-primary" : "btn-outline-primary";
+                                    var cnt = (s.ReactionCounts != null && s.ReactionCounts.TryGetValue(r.key, out var tmp)) ? tmp : 0;
+
+                                    <form method="post"
+                                          asp-route="StoryReactToggle"
+                                          asp-route-id="@s.Id"
+                                          asp-route-reaction="@r.key"
+                                          class="d-inline js-react-form"
+                                          data-story="@s.Id"
+                                          data-key="@r.key">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm @btn js-react-btn">
+                                            @r.emoji @r.text <span class="badge ms-1 js-count">@cnt</span>
+                                        </button>
+                                    </form>
+                                }
+
+                                <span class="text-muted small ms-2 js-cmt-counter" data-count="@s.CommentsCount">💬 @s.CommentsCount</span>
+                            </div>
+
+                            <hr class="my-3" />
+
+                           
+
+                            <!-- КОММЕНТАРИИ -->
+                            <div id="c-@s.Id" class="vstack gap-2">
+                                @await Html.PartialAsync("_CommentsChunk", s.LatestComments)
+                            </div>
+
+                            @if (s.CommentsCount > (s.LatestComments?.Count ?? 0))
+                            {
+                                <button type="button"
+                                        class="btn btn-link btn-sm js-more-comments"
+                                        data-story="@s.Id"
+                                        data-loaded="@(s.LatestComments?.Count ?? 0)"
+                                        data-total="@s.CommentsCount">
+                                    Показать ещё
+                                </button>
+                            }
+
+                            <div class="mt-2">
+                                @if (isAuth)
+                                {
+                                    <form method="post"
+                                          asp-route="StoryCommentCreate"
+                                          asp-route-id="@s.Id"
+                                          class="js-comment-form"
+                                          data-story="@s.Id">
+                                        @Html.AntiForgeryToken()
+                                        <div class="input-group">
+                                            <input name="content"
+                                                   class="form-control"
+                                                   placeholder="Написать комментарий…"
+                                                   maxlength="4000"
+                                                   required />
+                                            <button class="btn btn-outline-primary" type="submit">
+                                                Отправить
+                                            </button>
+                                        </div>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                       asp-controller="Account"
+                                       asp-action="Login"
+                                       asp-route-returnUrl="/">
+                                        Войдите, чтобы комментировать
+                                    </a>
+                                }
+                            </div>
+
+                        </div>
                     </div>
-                </div>
+                }
             </div>
         }
-    </div>
-
-    @if (Model.HasMore)
-    {
-        <div class="mt-3">
-            <a class="btn btn-outline-secondary"
+        <div id="loadMoreWrap" class="mt-3">
+            <a id="loadMoreBtn"
+               class="btn btn-outline-secondary js-load-more @(Model.HasMore ? "" : "disabled")"
+               aria-disabled="@(Model.HasMore ? "false" : "true")"
                asp-action="Index"
                asp-route-emotionId="@Model.SelectedEmotionId"
-               asp-route-page="@(Model.Page + 1)">Загрузить ещё</a>
+               asp-route-period="@Model.Period"
+               asp-route-weekOffset="@(Model.WeekOffset ?? 0)"
+               asp-route-afterCreated="@Model.NextAfterCreated"
+               asp-route-afterId="@Model.NextAfterId">
+                @(Model.HasMore ? "Загрузить ещё" : "Больше нет")
+            </a>
         </div>
-    }
-}
 
-@* ===== МОДАЛКИ — важное: отрисовываются как секция, а не внутри main ===== *@
+    </div>
 @section Modals {
+    @if (User?.Identity?.IsAuthenticated ?? false)
+    {
+        @await Html.PartialAsync("_MoodSurveyModal", Model.Moods)
+    }
     <div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -314,193 +577,234 @@ else
 }
 
 @section Scripts {
+    @{
+        var uid = (User?.Identity?.IsAuthenticated ?? false)
+            ? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            : null;
+    }
     <script>
         (() => {
-            // Единственный экземпляр модалки "Войти"
-            const authModalEl = document.getElementById('authModal');
-            const authModal = authModalEl ? new bootstrap.Modal(authModalEl, { backdrop: true, focus: true }) : null;
+            const UID = '@(uid ?? "")';
+            const key = `fs_mood_seen_at::${UID || 'guest'}`;
+            const now = Date.now();
+            const last = parseInt(localStorage.getItem(key) || '0', 10);
+            const dayMs = 24 * 60 * 60 * 1000;
 
-            const isAuth = @(User?.Identity?.IsAuthenticated ?? false ? "true" : "false");
+            if (now - last < dayMs) return;
 
-            // Вспомогательное: токен AntiForgery из формы (лежит в скрытом поле)
-            function getToken(form) {
-                const i = form.querySelector('input[name="__RequestVerificationToken"]');
-                return i ? i.value : null;
-            }
-
-            // ===== REACT (AJAX) =====
-            document.addEventListener('submit', async (e) => {
-                const form = e.target.closest('.js-react-form');
-                if (!form) return;
-                e.preventDefault();
-
-                if (!isAuth) { authModal?.show(); return; }
-
-                const btn = form.querySelector('.js-react-btn');
-                const storyId = form.dataset.story;
-                btn.disabled = true;
-
-                try {
-                    const resp = await fetch(form.action, {
-                        method: 'POST',
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                        body: new FormData(form),
-                        credentials: 'same-origin'
-                    });
-
-                    if (resp.status === 401) { authModal?.show(); return; }
-                    if (!resp.ok) throw new Error();
-
-                    const data = await resp.json(); // { ok, counts, my }
-                    const scope = document.querySelector(`#s-${storyId}`) || document;
-
-                    scope.querySelectorAll(`.js-react-form[data-story="${storyId}"]`).forEach(f => {
-                        const key = f.dataset.key;
-                        const b = f.querySelector('.js-react-btn');
-                        const cnt = f.querySelector('.js-count');
-                        cnt.textContent = (data.counts && data.counts[key]) ? data.counts[key] : 0;
-
-                        if (data.my && data.my.includes(key)) {
-                            b.classList.remove('btn-outline-primary'); b.classList.add('btn-primary');
-                        } else {
-                            b.classList.remove('btn-primary'); b.classList.add('btn-outline-primary');
-                        }
-                    });
-                } catch {
-                    console.warn('Reaction failed');
-                } finally {
-                    btn.disabled = false;
-                }
-            });
-
-            // ===== ADD COMMENT (AJAX) =====
-            document.addEventListener('submit', async (e) => {
-                const form = e.target.closest('.js-comment-form');
-                if (!form) return;
-                e.preventDefault();
-
-                if (!isAuth) { authModal?.show(); return; }
-
-                const btn = form.querySelector('button[type="submit"]');
-                const input = form.querySelector('input[name="content"]');
-                if (!input.value.trim()) return;
-
-                btn.disabled = true;
-
-                try {
-                    const resp = await fetch(form.action, {
-                        method: 'POST',
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                        body: new FormData(form),
-                        credentials: 'same-origin'
-                    });
-
-                    if (resp.status === 401) { authModal?.show(); return; }
-                    if (resp.status === 400) { return; } // пустой текст
-                    if (!resp.ok) throw new Error();
-
-                    const html = await resp.text(); // partial с 1 комментом
-                    const storyId = form.dataset.story;
-                    const cont = document.getElementById(`c-${storyId}`);
-                    cont.insertAdjacentHTML('afterbegin', html);
-                    input.value = "";
-
-                    // локально обновим счётчик 💬
-                    const counter = document.querySelector(`#s-${storyId} .js-cmt-counter`);
-                    if (counter) {
-                        const n = parseInt(counter.dataset.count || '0', 10) + 1;
-                        counter.dataset.count = String(n);
-                        counter.textContent = `💬 ${n}`;
+            fetch('/mood/check', { credentials: 'same-origin' })
+                .then(r => r.ok ? r.json() : Promise.reject())
+                .then(data => {
+                    if (data && data.need) {
+                        const modalEl = document.getElementById('moodModal');
+                        if (!modalEl) return;
+                        const m = new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: true });
+                        m.show();
+                        modalEl.addEventListener('hidden.bs.modal', () => {
+                            localStorage.setItem(key, String(Date.now()));
+                        }, { once: true });
+                    } else {
+                        localStorage.setItem(key, String(Date.now()));
                     }
-                } catch {
-                    console.warn('Comment failed');
-                } finally {
-                    btn.disabled = false;
-                }
-            });
-
-            // ===== LOAD MORE COMMENTS (AJAX) =====
-            document.addEventListener('click', async (e) => {
-                const btn = e.target.closest('.js-more-comments');
-                if (!btn) return;
-
-                const storyId = btn.dataset.story;
-                let loaded = parseInt(btn.dataset.loaded || '0', 10);
-                const total = parseInt(btn.dataset.total || '0', 10);
-                const take = 5;
-
-                btn.disabled = true;
-                btn.textContent = 'Загрузка...';
-
-                try {
-                    const resp = await fetch(`/stories/${storyId}/comments?skip=${loaded}&take=${take}`, {
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                    });
-                    if (!resp.ok) throw new Error();
-
-                    const html = await resp.text();
-                    document.getElementById(`c-${storyId}`).insertAdjacentHTML('beforeend', html);
-
-                    loaded += take;
-                    if (loaded >= total) btn.remove();
-                    else {
-                        btn.dataset.loaded = loaded;
-                        btn.disabled = false;
-                        btn.textContent = 'Показать ещё';
-                    }
-                } catch {
-                    btn.disabled = false;
-                    btn.textContent = 'Ошибка. Повторить?';
-                }
-            });
-
-            // ===== DELETE COMMENT (AJAX) =====
-            document.addEventListener('submit', async (e) => {
-                const form = e.target.closest('.js-del-comment-form');
-                if (!form) return;
-                e.preventDefault();
-
-                if (!confirm('Удалить комментарий?')) return;
-
-                try {
-                    const resp = await fetch(form.action, {
-                        method: 'POST',
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                        body: new FormData(form),
-                        credentials: 'same-origin'
-                    });
-                    if (!resp.ok) throw new Error();
-
-                    // убрать карточку комментария из DOM
-                    const commentEl = form.closest('.comment-item');
-                    if (commentEl) commentEl.remove();
-
-                    // уменьшить счетчик 💬
-                    const card = form.closest('.story.card');
-                    const storyId = card ? (card.id || '').replace('s-', '') : null;
-                    if (storyId) {
-                        const counter = document.querySelector(`#s-${storyId} .js-cmt-counter`);
-                        if (counter) {
-                            const n = Math.max(0, parseInt(counter.dataset.count || '0', 10) - 1);
-                            counter.dataset.count = String(n);
-                            counter.textContent = `💬 ${n}`;
-                        }
-                    }
-                } catch {
-                    alert('Не удалось удалить комментарий.');
-                }
-            });
-
-            // Мягко проскроллить к истории из профиля (?sid=)
-            (function () {
-                const url = new URL(window.location);
-                const sid = url.searchParams.get('sid');
-                if (!sid) return;
-                const el = document.getElementById('s-' + sid);
-                if (!el) return;
-                setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-            })();
-
+                })
+                .catch(() => { });
         })();
     </script>
+    <script>
+        (() => {
+            const authModalEl = document.getElementById('authModal');
+            const authModal = authModalEl ? new bootstrap.Modal(authModalEl, { backdrop: true, focus: true }) : null;
+            const isAuth = @(User?.Identity?.IsAuthenticated ?? false ? "true" : "false");
+
+            document.addEventListener('submit', async (e) => {
+                const form = e.target.closest('.js-react-form'); if (!form) return;
+                e.preventDefault();
+                if (!isAuth) { authModal?.show(); return; }
+                const btn = form.querySelector('.js-react-btn'); const storyId = form.dataset.story; btn.disabled = true;
+                try {
+                    const resp = await fetch(form.action, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: new FormData(form), credentials: 'same-origin' });
+                    if (resp.status === 401) { authModal?.show(); return; }
+                    if (!resp.ok) throw new Error();
+                    const data = await resp.json();
+                    const scope = document.querySelector(`#s-${storyId}`) || document;
+                    scope.querySelectorAll(`.js-react-form[data-story="${storyId}"]`).forEach(f => {
+                        const key = f.dataset.key; const b = f.querySelector('.js-react-btn'); const cnt = f.querySelector('.js-count');
+                        cnt.textContent = (data.counts && data.counts[key]) ? data.counts[key] : 0;
+                        if (data.my && data.my.includes(key)) { b.classList.remove('btn-outline-primary'); b.classList.add('btn-primary'); }
+                        else { b.classList.remove('btn-primary'); b.classList.add('btn-outline-primary'); }
+                    });
+                } catch { console.warn('Reaction failed'); } finally { btn.disabled = false; }
+            });
+
+            document.addEventListener('submit', async (e) => {
+                const form = e.target.closest('.js-comment-form'); if (!form) return;
+                e.preventDefault();
+                if (!isAuth) { authModal?.show(); return; }
+                const btn = form.querySelector('button[type="submit"]'); const input = form.querySelector('input[name="content"]');
+                if (!input.value.trim()) return; btn.disabled = true;
+                try {
+                    const resp = await fetch(form.action, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: new FormData(form), credentials: 'same-origin' });
+                    if (resp.status === 401) { authModal?.show(); return; }
+                    if (resp.status === 400) { return; }
+                    if (!resp.ok) throw new Error();
+                    const html = await resp.text();
+                    const storyId = form.dataset.story; const cont = document.getElementById(`c-${storyId}`);
+                    cont.insertAdjacentHTML('afterbegin', html); input.value = "";
+                    const counter = document.querySelector(`#s-${storyId} .js-cmt-counter`);
+                    if (counter) { const n = parseInt(counter.dataset.count || '0', 10) + 1; counter.dataset.count = String(n); counter.textContent = `💬 ${n}`; }
+                } catch { console.warn('Comment failed'); } finally { btn.disabled = false; }
+            });
+
+            document.addEventListener('click', async (e) => {
+                const btn = e.target.closest('.js-more-comments'); if (!btn) return;
+                const storyId = btn.dataset.story; let loaded = parseInt(btn.dataset.loaded || '0', 10);
+                const total = parseInt(btn.dataset.total || '0', 10); const take = 5;
+                btn.disabled = true; btn.textContent = 'Загрузка...';
+                try {
+                    const resp = await fetch(`/stories/${storyId}/comments?skip=${loaded}&take=${take}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    if (!resp.ok) throw new Error();
+                    const html = await resp.text(); document.getElementById(`c-${storyId}`).insertAdjacentHTML('beforeend', html);
+                    loaded += take; if (loaded >= total) btn.remove(); else { btn.dataset.loaded = loaded; btn.disabled = false; btn.textContent = 'Показать ещё'; }
+                } catch { btn.disabled = false; btn.textContent = 'Ошибка. Повторить?'; }
+            });
+
+            (function () {
+                const url = new URL(window.location); const sid = url.searchParams.get('sid'); if (!sid) return;
+                const el = document.getElementById('s-' + sid); if (!el) return; setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+            })();
+        })();
+    </script>
+
+        <script>
+            (() => {
+                const rootSel = '#feedRoot';
+                const storiesListSel = '#storiesList';
+                const loadMoreWrapSel = '#loadMoreWrap';
+
+                async function pjaxNavigate(url, { append = false, push = true } = {}) {
+                    const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    if (!res.ok) throw new Error('Load failed');
+
+                    const html = await res.text();
+                    const dom = new DOMParser().parseFromString(html, 'text/html');
+
+                    const newRoot = dom.querySelector(rootSel);
+                    if (!newRoot) { window.location.href = url; return; }
+
+                    const currentRoot = document.querySelector(rootSel);
+                    if (!currentRoot) { window.location.href = url; return; }
+
+                    if (append) {
+                        const newList = newRoot.querySelector(storiesListSel);
+                        const curList = currentRoot.querySelector(storiesListSel);
+                        if (newList && curList) {
+                            newList.querySelectorAll('.story.card').forEach(el => curList.appendChild(el));
+                        }
+
+                        // обновляем блок кнопки 
+                        const newMore = newRoot.querySelector(loadMoreWrapSel);
+                        const curMore = currentRoot.querySelector(loadMoreWrapSel);
+                        if (curMore) curMore.innerHTML = newMore ? newMore.innerHTML : '';
+                    } else {
+                        currentRoot.replaceWith(newRoot);
+                    }
+
+                    if (push) history.pushState(null, '', url);
+                }
+
+                function resetCursor(params) {
+                    params.delete('afterCreated');
+                    params.delete('afterId');
+                }
+
+                // период 
+                document.addEventListener('change', async (e) => {
+                    const periodSel = e.target.closest('#periodSelect');
+                    if (!periodSel) return;
+
+                    const em = periodSel.dataset.currentEm || '';
+                    const period = periodSel.value || '';
+                    const params = new URLSearchParams(window.location.search);
+
+                    resetCursor(params);
+
+                    if (em) params.set('emotionId', em); else params.delete('emotionId');
+                    if (period) params.set('period', period); else params.delete('period');
+                    if (period !== 'week') params.delete('weekOffset');
+
+                    const url = `/?${params.toString()}`;
+
+                    const wrap = document.getElementById('weekWrap');
+                    if (wrap) wrap.classList.toggle('d-none', period !== 'week');
+
+                    try { await pjaxNavigate(url, { append: false, push: true }); }
+                    catch { window.location.href = url; }
+                });
+
+                //неделя 
+                document.addEventListener('change', async (e) => {
+                    const weekSel = e.target.closest('#weekSelect');
+                    if (!weekSel) return;
+
+                    const params = new URLSearchParams(window.location.search);
+                    resetCursor(params);
+
+                    params.set('period', 'week');
+                    params.set('weekOffset', weekSel.value);
+
+                    const url = `/?${params.toString()}`;
+
+                    try { await pjaxNavigate(url, { append: false, push: true }); }
+                    catch { window.location.href = url; }
+                });
+
+                // эмоции
+                document.addEventListener('click', async (e) => {
+                    const a = e.target.closest('a.js-filter-link');
+                    if (!a) return;
+                    e.preventDefault();
+
+                    const u = new URL(a.href, location.origin);
+                    u.searchParams.delete('afterCreated');
+                    u.searchParams.delete('afterId');
+
+                    try { await pjaxNavigate(u.toString(), { append: false, push: true }); }
+                    catch { window.location.href = u.toString(); }
+                });
+
+                //загрузить ещё 
+                document.addEventListener('click', async (e) => {
+                    const btn = e.target.closest('.js-load-more');
+                    if (!btn) return;
+
+                    
+                    if (btn.classList.contains('disabled') || btn.getAttribute('aria-disabled') === 'true') {
+                        e.preventDefault();
+                        return;
+                    }
+
+                    e.preventDefault();
+
+                    const prevText = btn.textContent;
+                    btn.textContent = 'Загрузка...';
+                    btn.classList.add('disabled');
+                    btn.setAttribute('aria-disabled', 'true');
+
+                    try {
+                        
+                        await pjaxNavigate(btn.href, { append: true, push: false });
+                    } catch {
+                        window.location.href = btn.href;
+                    } finally {
+                        
+                    }
+                });
+
+              
+                window.addEventListener('popstate', () => {
+                    pjaxNavigate(location.href, { append: false, push: false })
+                        .catch(() => window.location.reload());
+                });
+            })();
+        </script>
 }

@@ -1,0 +1,227 @@
+﻿
+<div class="ex-card">
+    <div class="ex-head">
+        <div class="ex-title">Упражнение: дыхание 4–6</div>
+        <div class="ex-sub">Вдох 4 сек → выдох 6 сек. 6 циклов.</div>
+    </div>
+
+    <div class="ex-body">
+        <div class="breath-wrap">
+            <div class="breath-ring" id="breathRing" aria-hidden="true"></div>
+            <div class="breath-center">
+                <div class="phase" id="phaseText">Готовы?</div>
+                <div class="timer" id="timerText">00:00</div>
+                <div class="small muted" id="countText">Цикл: 0 / 6</div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap mt-3">
+            <button type="button" class="btn btn-primary" id="btnStart">Старт</button>
+            <button type="button" class="btn btn-outline-secondary" id="btnPause" disabled>Пауза</button>
+            <button type="button" class="btn btn-outline-danger" id="btnReset" disabled>Сброс</button>
+        </div>
+
+        <details class="mt-3">
+            <summary class="muted">Если накрывает сильно</summary>
+            <div class="mt-2">
+                <ol class="mb-0">
+                    <li>Посмотри вокруг и назови 3 предмета.</li>
+                    <li>Найди 2 звука.</li>
+                    <li>Почувствуй стопы на полу (10 секунд).</li>
+                </ol>
+            </div>
+        </details>
+    </div>
+</div>
+
+<style>
+    .ex-card{
+        border:1px solid var(--border);
+        background: var(--card);
+        border-radius:16px;
+        box-shadow: var(--shadow);
+        overflow:hidden;
+    }
+    .ex-head{
+        padding:14px 16px;
+        border-bottom:1px solid var(--border);
+    }
+    .ex-title{ font-weight:800; color:var(--ink); }
+    .ex-sub{ color:var(--muted); margin-top:4px; }
+    .ex-body{ padding:16px; }
+
+    .breath-wrap{
+        position:relative;
+        width: 280px;
+        height: 280px;
+        margin: 0 auto;
+        display:grid;
+        place-items:center;
+    }
+    .breath-ring{
+        width: 260px;
+        height: 260px;
+        border-radius: 999px;
+        border: 2px solid var(--border);
+        background: radial-gradient(circle at 30% 20%, rgba(99,102,241,.20), transparent 55%),
+                    radial-gradient(circle at 70% 80%, rgba(6,182,212,.18), transparent 60%);
+        transform: scale(.82);
+        transition: transform 900ms ease-in-out;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+    }
+    body.theme-dark .breath-ring{
+        border-color: #1f2937;
+        background: radial-gradient(circle at 30% 20%, rgba(99,102,241,.25), transparent 55%),
+                    radial-gradient(circle at 70% 80%, rgba(56,189,248,.18), transparent 60%);
+    }
+
+    .breath-center{
+        position:absolute;
+        text-align:center;
+        padding:12px 14px;
+        border-radius: 14px;
+        background: rgba(255,255,255,.55);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(229,231,235,.8);
+    }
+    body.theme-dark .breath-center{
+        background: rgba(2,6,23,.55);
+        border-color: rgba(31,41,55,.9);
+    }
+
+    .phase{ font-weight:800; font-size: 1.1rem; color:var(--ink); }
+    .timer{ font-weight:900; font-size: 1.4rem; margin-top:2px; color:var(--ink); }
+    .muted{ color:var(--muted); }
+</style>
+
+<script>
+    (() => {
+     
+      const ring = document.getElementById('breathRing');
+      const phaseText = document.getElementById('phaseText');
+      const timerText = document.getElementById('timerText');
+      const countText = document.getElementById('countText');
+
+      const btnStart = document.getElementById('btnStart');
+      const btnPause = document.getElementById('btnPause');
+      const btnReset = document.getElementById('btnReset');
+
+      if (!ring || !phaseText || !timerText || !countText || !btnStart) return;
+
+      const inhale = 4;
+      const exhale = 6;
+      const cyclesTarget = 6;
+
+      let t = null;
+      let running = false;
+      let paused = false;
+
+      let phase = 'ready'; 
+      let phaseLeft = 0;
+      let cycles = 0;
+      let totalSec = 0;
+
+      const pad = n => String(n).padStart(2,'0');
+      function renderTime(){
+        const mm = Math.floor(totalSec / 60);
+        const ss = totalSec % 60;
+        timerText.textContent = `${pad(mm)}:${pad(ss)}`;
+      }
+
+      function setPhase(p){
+        phase = p;
+        if (p === 'inhale'){
+          phaseText.textContent = 'Вдох';
+          ring.style.transform = 'scale(1.02)';
+          phaseLeft = inhale;
+        } else if (p === 'exhale'){
+          phaseText.textContent = 'Выдох';
+          ring.style.transform = 'scale(.78)';
+          phaseLeft = exhale;
+        }
+      }
+
+      function tick(){
+        if (!running || paused) return;
+
+        totalSec += 1;
+        renderTime();
+
+        phaseLeft -= 1;
+
+        if (phaseLeft <= 0){
+          if (phase === 'inhale'){
+            setPhase('exhale');
+          } else if (phase === 'exhale'){
+            cycles += 1;
+            countText.textContent = `Цикл: ${cycles} / ${cyclesTarget}`;
+
+            if (cycles >= cyclesTarget){
+              stop(true);
+              return;
+            }
+            setPhase('inhale');
+          }
+        }
+      }
+
+      function start(){
+        if (running) return;
+        running = true; paused = false;
+        totalSec = 0; cycles = 0;
+        renderTime();
+        countText.textContent = `Цикл: 0 / ${cyclesTarget}`;
+        setPhase('inhale');
+
+        btnPause.disabled = false;
+        btnReset.disabled = false;
+        btnStart.disabled = true;
+
+        t = setInterval(tick, 1000);
+      }
+
+      function stop(done=false){
+        running = false; paused = false;
+        if (t) clearInterval(t);
+        t = null;
+
+        btnStart.disabled = false;
+        btnPause.disabled = true;
+        btnReset.disabled = false;
+
+        if (done){
+          phaseText.textContent = 'Готово 💜';
+        } else {
+          phaseText.textContent = 'Остановлено';
+        }
+      }
+
+      function pause(){
+        if (!running) return;
+        paused = !paused;
+        btnPause.textContent = paused ? 'Продолжить' : 'Пауза';
+        phaseText.textContent = paused ? 'Пауза' : (phase === 'inhale' ? 'Вдох' : 'Выдох');
+      }
+
+      function reset(){
+        if (t) clearInterval(t);
+        t = null;
+        running = false; paused = false;
+        totalSec = 0; cycles = 0;
+        phase = 'ready';
+        ring.style.transform = 'scale(.82)';
+        phaseText.textContent = 'Готовы?';
+        timerText.textContent = '00:00';
+        countText.textContent = `Цикл: 0 / ${cyclesTarget}`;
+
+        btnStart.disabled = false;
+        btnPause.disabled = true;
+        btnPause.textContent = 'Пауза';
+        btnReset.disabled = true;
+      }
+
+      btnStart.addEventListener('click', start);
+      btnPause.addEventListener('click', pause);
+      btnReset.addEventListener('click', reset);
+    })();
+</script>

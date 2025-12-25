@@ -8,6 +8,28 @@
                && (action == null || string.Equals(a, action, StringComparison.OrdinalIgnoreCase))
             ? "active" : "";
     }
+
+    bool IsAdminArea() => string.Equals(
+        ViewContext.RouteData.Values["area"]?.ToString() ?? "",
+        "Admin", StringComparison.OrdinalIgnoreCase);
+
+    string IsTabActive(string controller, string? action = null, bool? adminArea = null)
+    {
+        var c = (ViewContext.RouteData.Values["controller"]?.ToString() ?? "");
+        var a = (ViewContext.RouteData.Values["action"]?.ToString() ?? "");
+        var area = ViewContext.RouteData.Values["area"]?.ToString();
+
+        bool areaOk = adminArea == null
+            ? true
+            : (adminArea.Value
+                ? string.Equals(area, "Admin", StringComparison.OrdinalIgnoreCase)
+                : !string.Equals(area, "Admin", StringComparison.OrdinalIgnoreCase));
+
+        return areaOk
+            && string.Equals(c, controller, StringComparison.OrdinalIgnoreCase)
+            && (action == null || string.Equals(a, action, StringComparison.OrdinalIgnoreCase))
+            ? "active" : "";
+    }
 }
 <!DOCTYPE html>
 <html lang="ru">
@@ -18,6 +40,7 @@
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
 
     @RenderSection("Styles", required: false)
 
@@ -45,6 +68,8 @@
             border-radius: 16px;
             padding: 1.25rem;
             box-shadow: 0 10px 30px rgba(0,0,0,.08);
+          
+            padding-bottom: 100px;
         }
 
         .fs-navbar {
@@ -64,7 +89,8 @@
                 position: relative;
             }
 
-                .fs-navbar .nav-link:hover, .fs-navbar .nav-link.active {
+                .fs-navbar .nav-link:hover,
+                .fs-navbar .nav-link.active {
                     color: #fff;
                 }
 
@@ -81,18 +107,152 @@
                     transition: opacity .2s, transform .2s;
                 }
 
-                .fs-navbar .nav-link:hover::after, .fs-navbar .nav-link.active::after {
+                .fs-navbar .nav-link:hover::after,
+                .fs-navbar .nav-link.active::after {
                     opacity: 1;
                     transform: scaleX(1);
                 }
+
+            .fs-navbar .navbar-nav .nav-link,
+            .fs-navbar .navbar-nav .dropdown-toggle {
+                color: rgba(255,255,255,.9) !important;
+            }
+
+                .fs-navbar .navbar-nav .nav-link:hover,
+                .fs-navbar .navbar-nav .dropdown-toggle:hover {
+                    color: #fff !important;
+                }
+
+            .fs-navbar .nav-item form {
+                margin: 0;
+            }
+
+                .fs-navbar .nav-item form button {
+                    background: none;
+                    border: none;
+                    box-shadow: none;
+                    padding: 0 .4rem;
+                    color: rgba(255,255,255,.9);
+                    font-weight: 500;
+                }
+
+                    .fs-navbar .nav-item form button:hover {
+                        color: #fff;
+                        background: none;
+                    }
+
+        
+        .fs-bottom-bar {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 18px;
+            z-index: 1030;
+            width: min(80%, 430px); 
+            padding: .7rem 1.6rem calc(.7rem + env(safe-area-inset-bottom));
+            border-radius: 999px;
+            background: linear-gradient( 90deg, rgba(129,140,248,0.88), rgba(56,189,248,0.88) );
+            backdrop-filter: blur(14px) saturate(160%);
+            -webkit-backdrop-filter: blur(14px) saturate(160%);
+            box-shadow: 0 10px 30px rgba(15,23,42,0.35), 0 0 0 1px rgba(255,255,255,0.25);
+        }
+
+            .fs-bottom-bar .tab {
+                flex: 1 1 0;
+                text-align: center;
+                text-decoration: none;
+                color: #f9fafb;
+                opacity: .8;
+                font-size: .9rem;
+            }
+
+                .fs-bottom-bar .tab .bi {
+                    display: block;
+                    font-size: 1.35rem;
+                    line-height: 1;
+                    margin-bottom: 2px;
+                }
+
+                .fs-bottom-bar .tab.active {
+                    opacity: 1;
+                    color: #ffffff;
+                }
+
+                    .fs-bottom-bar .tab.active .bi {
+                        transform: translateY(-1px);
+                    }
+
+                .fs-bottom-bar .tab:focus-visible {
+                    outline: 2px solid #e5e7eb;
+                    outline-offset: 2px;
+                }
+        body.theme-dark {
+            color: #e5e7eb;
+        }
+            body.theme-dark.fs-has-bg {
+                background: radial-gradient(1200px 480px at 100% 0, rgba(15,23,42,.6), transparent 60%), linear-gradient(180deg, rgba(15,23,42,.55), rgba(15,23,42,.9)), linear-gradient(rgba(11,16,26,.55), rgba(11,16,26,.85)), var(--fs-bg) center/cover no-repeat fixed;
+            }
+
+            body.theme-dark main[role="main"] {
+                background: rgba(15,23,42,.94);
+                color: #e5e7eb;
+                box-shadow: 0 10px 30px rgba(0,0,0,.65);
+            }
+
+            body.theme-dark .fs-navbar {
+                background: radial-gradient(800px 120px at 100% 0%, rgba(129,140,248,.28), transparent 60%), linear-gradient(90deg, #020617, #111827 60%, #020617);
+            }
+
+                body.theme-dark .fs-navbar .nav-link {
+                    color: rgba(248,250,252,.9) !important;
+                }
+
+                    body.theme-dark .fs-navbar .nav-link:hover,
+                    body.theme-dark .fs-navbar .nav-link.active {
+                        color: #fff !important;
+                    }
+
+            body.theme-dark .story,
+            body.theme-dark .emo-card {
+                background: rgba(15,23,42,.97) !important;
+                border-color: rgba(148,163,184,.6) !important;
+                box-shadow: 0 16px 40px rgba(15,23,42,.9);
+            }
+
+            body.theme-dark .hero {
+                background: radial-gradient(900px 360px at 100% -20%, rgba(244,244,245,.16), transparent 60%), linear-gradient(135deg, #4f46e5, #0ea5e9 55%, #22c55e);
+                color: #f9fafb;
+            }
+
+            body.theme-dark .share-card {
+                background: rgba(248,250,252,0.98) !important;
+                border-color: rgba(226,232,240,.9) !important;
+                color: #111827;
+            }
+
+           
+            body.theme-dark .fs-bottom-bar {
+                background: linear-gradient( 90deg, rgba(55,65,194,0.95), rgba(12,74,110,0.95) );
+                box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 0 1px rgba(15,23,42,0.7);
+            }
+
+                body.theme-dark .fs-bottom-bar .tab {
+                    color: #e5e7eb;
+                }
+
+                    body.theme-dark .fs-bottom-bar .tab.active {
+                        color: #f9fafb;
+                    }
     </style>
 </head>
 <body class="fs-has-bg">
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark fs-navbar sticky-top shadow-sm">
             <div class="container-xl">
-                <a class="navbar-brand d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Index">
-                    <img src="~/images/log1.png" asp-append-version="true" alt="FeelShare" class="brand-logo" />
+                <a class="navbar-brand d-flex align-items-center gap-2"
+                   asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/log1.png" asp-append-version="true"
+                         alt="FeelShare" class="brand-logo" />
                     <span class="brand-text text-white fw-bold">FEELSHARE</span>
                 </a>
 
@@ -104,36 +264,22 @@
                 <div class="collapse navbar-collapse" id="mainNav">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link @IsActive("Home","Index")" asp-controller="Home" asp-action="Index">Главная</a>
+                            <a class="nav-link @IsActive("Home","Index")"
+                               asp-controller="Home" asp-action="Index">Главная</a>
                         </li>
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link @IsActive("Quotes","Index")" asp-area="Admin" asp-controller="Quotes" asp-action="Index">Админка</a>
-                            </li>
-                        }
                     </ul>
 
                     <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-                        @if (User.Identity?.IsAuthenticated ?? false)
-                        {
-                            <li class="nav-item d-none d-lg-block">
-                                <a class="btn btn-outline-light btn-sm px-3"
-                                   href="@Url.Action("Index","Profile", new { area = "" })">Профиль</a>
-                            </li>
-                            <li class="nav-item d-none d-lg-block">
-                                <a class="btn btn-outline-light btn-sm px-3"
-                                   href="@Url.Action("Me","Profile", new { area = "" })">Мой дневник</a>
-                            </li>
+                        @* Переключатель темы *@
+                        <li class="nav-item">
+                            <button type="button"
+                                    id="themeToggle"
+                                    class="btn btn-link nav-link p-0 px-2"
+                                    title="Переключить тему">
+                                🌙
+                            </button>
+                        </li>
 
-                         
-                            <li class="nav-item d-lg-none">
-                                <a class="nav-link" href="@Url.Action("Index","Profile", new { area = "" })">Профиль</a>
-                            </li>
-                            <li class="nav-item d-lg-none">
-                                <a class="nav-link" href="@Url.Action("Me","Profile", new { area = "" })">Мой дневник</a>
-                            </li>
-                        }
                         <li class="nav-item">
                             @await Html.PartialAsync("~/Views/Shared/_LoginPartial.cshtml")
                         </li>
@@ -150,22 +296,133 @@
         </main>
     </div>
 
-    @* РЕНДЕРИМ ТОЛЬКО ОДИН РАЗ *@
+    @* Модалки со страниц *@
     @RenderSection("Modals", required: false)
 
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
     <script>
+        // авто-закрытие алертов
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.alert[data-autohide="true"]').forEach(el => {
                 const delay = parseInt(el.getAttribute('data-delay') || '4000', 10);
                 setTimeout(() => {
-                    try { el.classList.add('fs-hide'); setTimeout(() => bootstrap.Alert.getOrCreateInstance(el).close(), 220); } catch { }
+                    try {
+                        el.classList.add('fs-hide');
+                        setTimeout(() => bootstrap.Alert.getOrCreateInstance(el).close(), 220);
+                    } catch { }
                 }, delay);
             });
         });
     </script>
 
+    <script>
+       
+        document.addEventListener('DOMContentLoaded', () => {
+            const body = document.body;
+            const toggleBtn = document.getElementById('themeToggle');
+            const storageKey = 'fs_theme'; 
+
+            function applyTheme(theme) {
+                if (theme === 'dark') {
+                    body.classList.add('theme-dark');
+                } else {
+                    body.classList.remove('theme-dark');
+                }
+
+                if (toggleBtn) {
+                    toggleBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
+                }
+            }
+
+            let current = localStorage.getItem(storageKey);
+
+            if (!current) {
+                const prefersDark = window.matchMedia &&
+                    window.matchMedia('(prefers-color-scheme: dark)').matches;
+                current = prefersDark ? 'dark' : 'light';
+            }
+
+            applyTheme(current);
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    current = current === 'dark' ? 'light' : 'dark';
+                    localStorage.setItem(storageKey, current);
+                    applyTheme(current);
+                });
+            }
+        });
+    </script>
+
     @RenderSection("Scripts", required: false)
+
+    <!-- Нижняя док-панель с иконками -->
+    @if (User.Identity?.IsAuthenticated ?? false)
+    {
+        <nav class="fs-bottom-bar">
+            <div class="d-flex align-items-center justify-content-between gap-2">
+                <!-- Главная -->
+                <a class="tab @IsTabActive("Home","Index", adminArea: false)"
+                   href="@Url.Action("Index","Home", new { area = "" })"
+                   aria-label="Главная">
+                    <i class="bi bi-house"></i>
+                    <span class="visually-hidden">Главная</span>
+                </a>
+
+                <!-- Дневник -->
+                <a class="tab @IsTabActive("Profile","Me", adminArea: false)"
+                   href="@Url.Action("Me","Profile", new { area = "" })"
+                   aria-label="Мой дневник">
+                    <i class="bi bi-journal-text"></i>
+                    <span class="visually-hidden">Мой дневник</span>
+                </a>
+
+                <!-- Диаграмма эмоций -->
+                <a class="tab @IsTabActive("Profile","Emotions", adminArea: false)"
+                   href="@Url.Action("Emotions","Profile", new { area = "" })"
+                   aria-label="Диаграмма эмоций">
+                    <i class="bi bi-activity"></i>
+                    <span class="visually-hidden">Диаграмма эмоций</span>
+                </a>
+
+                <!-- Профиль -->
+                <a class="tab @IsTabActive("Profile","Index", adminArea: false)"
+                   href="@Url.Action("Index","Profile", new { area = "" })"
+                   aria-label="Профиль">
+                    <i class="bi bi-person"></i>
+                    <span class="visually-hidden">Профиль</span>
+                </a>
+
+                @if (User.IsInRole("Admin"))
+                {
+                    <!-- Админка (цитаты) -->
+                    <a class="tab @IsTabActive("Quotes","Index", adminArea: true)"
+                       href="@Url.Action("Index","Quotes", new { area = "Admin" })"
+                       aria-label="Админка">
+                        <i class="bi bi-shield-lock"></i>
+                        <span class="visually-hidden">Админка</span>
+                    </a>
+
+                    <!-- Советы к графику -->
+                    <a class="tab @IsTabActive("Advices","Index", adminArea: true)"
+                       href="@Url.Action("Index","Advices", new { area = "Admin" })"
+                       aria-label="Советы к графику">
+                        <i class="bi bi-chat-quote"></i>
+                        <span class="visually-hidden">Советы к графику</span>
+                    </a>
+                    <!-- Модерация -->
+                    <a class="tab @IsTabActive("Moderation","Index", adminArea: true)"
+                       href="@Url.Action("Index","Moderation", new { area = "Admin" })"
+                       aria-label="Модерация">
+                        <i class="bi bi-flag"></i>
+                        <span class="visually-hidden">Модерация</span>
+                    </a>
+                }
+            </div>
+        </nav>
+    }
+
 </body>
 </html>

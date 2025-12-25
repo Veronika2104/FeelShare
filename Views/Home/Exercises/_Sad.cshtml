@@ -1,0 +1,278 @@
+﻿@model FeelShare.Web.Models.Emotion
+
+@{
+    var slug = (Model.Slug ?? "").ToLowerInvariant();
+}
+
+@if (slug == "sad" || slug == "grust" || slug == "sadness" || Model.Name.ToLower().Contains("груст"))
+{
+    <section class="ex-card sad-ex" aria-label="Упражнения для грусти">
+        <div class="ex-head">
+            <div class="ex-title"> Мягкая поддержка при грусти</div>
+            
+        </div>
+
+        
+          
+            <div class="ex-item">
+                <div class="ex-item-title"> Дыхание “Тёплый выдох” </div>
+                <div class="ex-item-text">
+                    Вдох на <b>3</b> счёта — выдох на <b>5</b>. На выдохе чуть расслабь плечи.
+                </div>
+
+                <div class="ex-breath">
+                    <div class="orb" id="sadOrb"></div>
+                    <div class="ex-breath-row">
+                        <span class="phase" id="sadPhase">Готово</span>
+                        <span class="timer" id="sadTimer">00:00</span>
+                    </div>
+
+                    <div class="ex-actions">
+                        <button type="button" class="btn btn-sm btn-primary" id="sadStart">Старт</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="sadStop">Стоп</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="sadReset">Сброс</button>
+                    </div>
+
+                    <div class="ex-note">Сделай 8–12 циклов. Главное — мягко и без усилия.</div>
+                </div>
+            </div>
+
+            
+    </section>
+}
+<style>
+   
+    .sad-ex.ex-card {
+        border: 1px solid rgba(99,102,241,.20);
+        background: radial-gradient(900px 260px at 10% 0%, rgba(99,102,241,.10), transparent 55%), radial-gradient(700px 240px at 95% 20%, rgba(6,182,212,.10), transparent 55%), var(--card);
+        border-radius: 18px;
+        box-shadow: 0 14px 40px rgba(2,6,23,.06);
+        padding: 16px;
+        margin: 0 0 16px 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .sad-ex .ex-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .sad-ex .ex-title {
+        font-weight: 900;
+        color: var(--ink);
+        font-size: 1.12rem;
+        letter-spacing: .2px;
+    }
+
+    .sad-ex .ex-sub {
+        color: var(--muted);
+        margin-top: 2px;
+        font-size: .95rem;
+    }
+
+    .sad-ex .ex-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .sad-ex .ex-item {
+        border: 1px solid rgba(15,23,42,.08);
+        border-radius: 16px;
+        padding: 14px;
+        background: linear-gradient(180deg, rgba(255,255,255,.75), rgba(255,255,255,.55)), var(--soft);
+    }
+
+    .sad-ex .ex-item-title {
+        font-weight: 800;
+        color: var(--ink);
+    }
+
+    .sad-ex .ex-item-text {
+        margin-top: 8px;
+        color: var(--muted);
+        line-height: 1.45;
+    }
+
+    .sad-ex .ex-note {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: .92rem;
+    }
+
+    
+    .sad-ex .ex-breath {
+        display: grid;
+        justify-items: center;
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    /* Прямоугольник по центру */
+    .sad-ex .orb {
+        display: block;
+        width: 100%;
+        max-width: 300px;
+        height: 96px;
+        margin: 0 auto;
+        border-radius: 16px;
+        border: 1px solid rgba(99,102,241,.25);
+        background: radial-gradient(circle at 20% 30%, rgba(99,102,241,.22), transparent 55%), radial-gradient(circle at 80% 80%, rgba(6,182,212,.18), transparent 58%), linear-gradient(135deg, rgba(255,255,255,.65), rgba(255,255,255,.25));
+        box-shadow: 0 10px 24px rgba(99,102,241,.10), inset 0 0 0 1px rgba(255,255,255,.55);
+        transform: scale(1);
+        transition: transform 500ms ease;
+    }
+
+    /* Фаза/таймер*/
+    .sad-ex .ex-breath-row {
+        width: 100%;
+        max-width: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .sad-ex .phase {
+        font-weight: 900;
+        color: var(--ink);
+        font-size: 1.02rem;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(99,102,241,.18);
+        background: rgba(99,102,241,.08);
+    }
+
+    .sad-ex .timer {
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+        font-weight: 800;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(15,23,42,.10);
+        background: rgba(255,255,255,.65);
+    }
+
+    /* Кнопки по центру и ровно */
+    .sad-ex .ex-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+   
+    body.theme-dark .sad-ex.ex-card {
+        border-color: rgba(148,163,184,.18);
+        background: radial-gradient(900px 260px at 10% 0%, rgba(99,102,241,.18), transparent 55%), radial-gradient(700px 240px at 95% 20%, rgba(56,189,248,.14), transparent 55%), #020617;
+        box-shadow: 0 16px 44px rgba(0,0,0,.55);
+    }
+
+    body.theme-dark .sad-ex .ex-item {
+        border-color: rgba(148,163,184,.16);
+        background: rgba(2,6,23,.65);
+    }
+
+    body.theme-dark .sad-ex .orb {
+        border-color: rgba(148,163,184,.18);
+        background: radial-gradient(circle at 20% 30%, rgba(99,102,241,.26), transparent 58%), radial-gradient(circle at 80% 80%, rgba(56,189,248,.18), transparent 60%), linear-gradient(135deg, rgba(2,6,23,.35), rgba(2,6,23,.55));
+        box-shadow: 0 14px 34px rgba(0,0,0,.65);
+    }
+
+    body.theme-dark .sad-ex .timer {
+        background: rgba(2,6,23,.55);
+        border-color: rgba(148,163,184,.16);
+        color: #cbd5e1;
+    }
+
+    body.theme-dark .sad-ex .phase {
+        background: rgba(99,102,241,.14);
+        border-color: rgba(99,102,241,.22);
+    }
+</style>
+<script>
+    (() => {
+      const startBtn = document.getElementById('sadStart');
+      const stopBtn  = document.getElementById('sadStop');
+      const resetBtn = document.getElementById('sadReset');
+      const orb      = document.getElementById('sadOrb');
+      const phaseEl  = document.getElementById('sadPhase');
+      const timerEl  = document.getElementById('sadTimer');
+
+      // если не грусть — элементов не будет
+      if (!startBtn || !stopBtn || !resetBtn || !orb || !phaseEl || !timerEl) return;
+
+      // цикл: вдох 3, выдох 5, пауза 1
+      const steps = [
+        { name: 'Вдох (3)',  ms: 3000, scale: 1.06 },
+        { name: 'Выдох (5)', ms: 5000, scale: 0.96 },
+        { name: 'Пауза (1)', ms: 1000, scale: 1.00 },
+      ];
+
+      let running = false;
+      let t0 = 0;
+      let tick = null;
+      let stepIdx = 0;
+      let stepTimeout = null;
+
+      function fmt(ms){
+        const s = Math.floor(ms / 1000);
+        const mm = String(Math.floor(s / 60)).padStart(2,'0');
+        const ss = String(s % 60).padStart(2,'0');
+        return `${mm}:${ss}`;
+      }
+
+      function updateTimer(){
+        timerEl.textContent = fmt(Date.now() - t0);
+      }
+
+      function applyStep(){
+        if (!running) return;
+
+        const st = steps[stepIdx];
+        phaseEl.textContent = st.name;
+        orb.style.transform = `scale(${st.scale})`;
+
+        stepTimeout = setTimeout(() => {
+          stepIdx = (stepIdx + 1) % steps.length;
+          applyStep();
+        }, st.ms);
+      }
+
+      function start(){
+        if (running) return;
+        running = true;
+        t0 = Date.now() - (t0 ? (Date.now() - t0) : 0); // сохраняем время, если старт после стопа
+        tick = setInterval(updateTimer, 200);
+        applyStep();
+      }
+
+      function stop(){
+        running = false;
+        if (tick) { clearInterval(tick); tick = null; }
+        if (stepTimeout) { clearTimeout(stepTimeout); stepTimeout = null; }
+        phaseEl.textContent = 'Пауза';
+        orb.style.transform = 'scale(1)';
+      }
+
+      function reset(){
+        stop();
+        t0 = 0;
+        stepIdx = 0;
+        timerEl.textContent = '00:00';
+        phaseEl.textContent = 'Готово';
+      }
+
+      startBtn.addEventListener('click', start);
+      stopBtn.addEventListener('click', stop);
+      resetBtn.addEventListener('click', reset);
+
+      
+      reset();
+    })();
+</script>

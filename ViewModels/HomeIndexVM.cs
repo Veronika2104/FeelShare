@@ -9,7 +9,19 @@ namespace FeelShare.Web.ViewModels
         public int? SelectedEmotionId { get; set; }
         public int Page { get; set; }
         public bool HasMore { get; set; }
+
+        // Пагинация курсором
+
+        public string? NextAfterCreated { get; set; }  // ISO 8601 (UTC)
+        public int? NextAfterId { get; set; }          // int, т.к. Id у PublicStory — int
+
+        // Фильтр по периодам
+        // null | "today" | "7d" | "30d" | "week"
+        public string? Period { get; set; }
+        // Смещение недель для Period=="week": 0 = эта, 1 = прошлая и т.д.
+        public int? WeekOffset { get; set; }
     }
+
 
     public class StoryListItemVM
     {
@@ -29,13 +41,15 @@ namespace FeelShare.Web.ViewModels
         public int CommentsCount { get; set; }
         public List<CommentItemVM> LatestComments { get; set; } = new();
     }
+
     public class CommentItemVM
     {
         public int Id { get; set; }
-        public string Author { get; set; } = ""; 
+        public string Author { get; set; } = "";
         public string Content { get; set; } = "";
         public DateTime CreatedAtUtc { get; set; }
         public bool IsOwner { get; set; }
-    
-}
+
+    }
+
 }

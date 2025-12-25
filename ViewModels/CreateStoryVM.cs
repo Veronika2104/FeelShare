@@ -5,8 +5,12 @@ namespace FeelShare.Web.ViewModels
 {
     public class CreateStoryVM
     {
-        public IEnumerable<Emotion> Moods { get; set; } = Enumerable.Empty<Emotion>();
+        public List<Emotion> Moods { get; set; } = new();
+
+        // Предвыбранная эмоция (если пришли с фильтра по эмоции)
         public int? SelectedEmotionId { get; set; }
+
+        // Куда вернуться после публикации 
         public string? ReturnUrl { get; set; }
     }
 }

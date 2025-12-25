@@ -1,0 +1,49 @@
+﻿@model FeelShare.Web.Models.MoodAdvice
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<form asp-area="Admin"
+      asp-controller="Advices"
+      asp-action="Save"
+      method="post"
+      class="vstack gap-3">
+    @Html.AntiForgeryToken()
+
+    <!-- Id нужен, чтобы Save понимал: создаю (Id=0) или обновляю (Id>0) -->
+    <input type="hidden" asp-for="Id" />
+
+    <div>
+        <label asp-for="Category" class="form-label">Категория</label>
+
+        <!-- Категории фиксированные: bad / neutral / good -->
+        <select asp-for="Category" class="form-select">
+            <option value="bad">bad</option>
+            <option value="neutral">neutral</option>
+            <option value="good">good</option>
+        </select>
+
+        <!-- Ошибки валидации категории -->
+        <span asp-validation-for="Category" class="text-danger small"></span>
+    </div>
+
+    <div>
+        <label asp-for="Text" class="form-label">Текст</label>
+
+        <!-- Сам текст совета -->
+        <textarea asp-for="Text" class="form-control" rows="5"></textarea>
+
+        <!-- Ошибки валидации текста -->
+        <span asp-validation-for="Text" class="text-danger small"></span>
+    </div>
+
+    <div class="form-check">
+        <input asp-for="IsActive" class="form-check-input" />
+        <label asp-for="IsActive" class="form-check-label">Активен</label>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+
+        <!-- "Новый" не отправляет форму, а через JS просит пустую форму -->
+        <a href="#" class="btn btn-outline-secondary js-new">Новый</a>
+    </div>
+</form>

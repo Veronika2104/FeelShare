@@ -1,0 +1,48 @@
+﻿@model IEnumerable<FeelShare.Web.Models.MoodAdvice>
+
+<table class="table align-middle">
+    <thead>
+        <tr>
+            <th style="width:120px">Категория</th>
+            <th>Текст</th>
+            <th style="width:170px"></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var a in Model)
+        {
+            <tr>
+                <td>
+                   
+                    <span class="badge @(a.Category=="bad"?"bg-danger":a.Category=="good"?"bg-success":"bg-secondary")">
+                        @a.Category
+                    </span>
+
+                    <!-- Метка off, если совет выключен -->
+                    @if (!a.IsActive)
+                    {
+                        <span class="badge bg-light text-muted ms-1">off</span>
+                    }
+                </td>
+
+                <td>@a.Text</td>
+
+                <td class="text-end">
+                    <!-- Эти кнопки НЕ переходят по ссылке  их ловит JS -->
+                    <a href="#" class="btn btn-sm btn-outline-primary js-edit" data-id="@a.Id">
+                        Редактировать
+                    </a>
+
+                    <a href="#" class="btn btn-sm btn-outline-secondary js-toggle" data-id="@a.Id">
+                        @(a.IsActive ? "Выключить" : "Включить")
+                    </a>
+
+                    <a href="#" class="btn btn-sm btn-outline-danger js-delete" data-id="@a.Id">
+                        Удалить
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

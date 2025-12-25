@@ -6,9 +6,10 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1) БД
+// 1) БД 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // 2) Identity
 builder.Services
@@ -20,37 +21,46 @@ builder.Services
         opts.Password.RequireLowercase = false;
         opts.Password.RequireNonAlphanumeric = false;
         opts.Password.RequiredLength = 8;
-        opts.SignIn.RequireConfirmedAccount = true;// вход только после подтверждения
+        opts.SignIn.RequireConfirmedAccount = false;
     })
     .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();// вход только после подтверждения
+    .AddDefaultTokenProviders();
 
-// 3) Куки
+// 3) Cookies
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
-    options.Events.OnRedirectToLogin = ctx =>
-    {
-        // Для AJAX запросов не редиректим — шлём 401, чтобы на фронте открыть модалку
-        if (ctx.Request.Headers.TryGetValue("X-Requested-With", out var v) &&
-            string.Equals(v, "XMLHttpRequest", StringComparison.OrdinalIgnoreCase))
-        {
-            ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            return Task.CompletedTask;
-        }
-        ctx.Response.Redirect(ctx.RedirectUri);
-        return Task.CompletedTask;
-    };
 });
 
-// 4)  РЕГИСТРАЦИЯ ПОЧТЫ 
-builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+// 4) Почта
+builder.Services.Configure<SmtpOptions>(
+    builder.Configuration.GetSection("Smtp"));
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 
+// 5) MVC
 builder.Services.AddControllersWithViews();
+
+// 6) Session
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession();
 
 var app = builder.Build();
 
+// МИГРАЦИИ
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+using (var scope = app.Services.CreateScope())
+{
+    var sp = scope.ServiceProvider;
+
+    var db = sp.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+
+    await Seed.AdminAsync(sp); 
+}
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -59,16 +69,10 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
-
-using (var scope = app.Services.CreateScope())
-{
-    await Seed.AdminAsync(scope.ServiceProvider);
-}
 
 app.MapControllerRoute(
     name: "areas",

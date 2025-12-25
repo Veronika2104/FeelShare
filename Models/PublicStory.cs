@@ -8,26 +8,42 @@ namespace FeelShare.Web.Models
         public int Id { get; set; }
 
         [Required]
-        public int EmotionId { get; set; }//ссылка на эмоцию
+        public int EmotionId { get; set; }
         public Emotion Emotion { get; set; } = null!;
 
-        // Пишем, кто создал (для модерации), но не показываем имя
         [Required]
         public string UserId { get; set; } = null!;
         public ApplicationUser User { get; set; } = null!;
 
-        [Required, Column(TypeName = "nvarchar(max)")]
+        [Required ]
         public string Content { get; set; } = null!;
 
         public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
-        //  (модерация/скрытие)
+        
         public bool IsPublished { get; set; } = true;
 
+        //статус модерации
+        public ModerationStatus ModerationStatus { get; set; } = ModerationStatus.Published;
+
+        // сколько жалоб
+        public int ReportsCount { get; set; } = 0;
+
+        //  причина (для админки)
+        [MaxLength(300)]
+        public string? ModerationNote { get; set; }
+
+  
+        public DateTime? ModeratedAtUtc { get; set; }
+        [MaxLength(450)]
+        public string? ModeratedByUserId { get; set; }
+
         public ICollection<StoryLike> Likes { get; set; } = new List<StoryLike>();
-      
         public ICollection<StoryReaction> Reactions { get; set; } = new List<StoryReaction>();
-        public ICollection<StoryComment> Comments { get; set; } = new List<StoryComment>();//лайки, реакции ,комментарии.
+        public ICollection<StoryComment> Comments { get; set; } = new List<StoryComment>();
+
+        
+        public ICollection<StoryReport> Reports { get; set; } = new List<StoryReport>();
     }
 
     public class StoryLike
@@ -36,12 +52,11 @@ namespace FeelShare.Web.Models
 
         [Required]
         public int StoryId { get; set; }
-       // указывает, к какой истории поставили лайк.
         public PublicStory Story { get; set; } = null!;
 
         [Required, MaxLength(100)]
-        public string LikeKey { get; set; } = null!;//уникальный ключ, чтобы один человек не мог накрутить лайки.
+        public string LikeKey { get; set; } = null!;
 
-        public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;//Когда лайк был поставлен.
+        public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
     }
 }

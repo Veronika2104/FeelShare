@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
+﻿
 using FeelShare.Web.Data;
 using FeelShare.Web.Models;
 using FeelShare.Web.ViewModels;
@@ -8,26 +6,16 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
+using System.Text;
 
 namespace FeelShare.Web.Controllers
 {
-    [AllowAnonymous]
+    [AllowAnonymous] // по умолчанию страницы доступны всем, но отдельные методы требуют [Authorize]
     public class HomeController : Controller
     {
         private readonly AppDbContext _db;
         private readonly UserManager<ApplicationUser> _um;
-
-        // Набор разрешённых реакций
-        private static readonly (string key, string text, string emoji)[] Reactions =
-        [
-            ("heart", "Нравится", "❤️"),
-            ("hug",   "Поддерживаю", "🤗"),
-            ("smile", "Радуюсь", "😊"),
-            ("wow",   "Ух ты", "😮"),
-            ("up",    "Держись", "💪"),
-            ("cry",    "Грустно", "😭"),
-            
-        ];
 
         public HomeController(AppDbContext db, UserManager<ApplicationUser> um)
         {
@@ -35,7 +23,18 @@ namespace FeelShare.Web.Controllers
             _um = um;
         }
 
-        // Ключ для реакций/лайков (пользователь/гость)
+        // Разрешённые реакции (ключ — то, что хранится в БД)
+        private static readonly (string key, string text, string emoji)[] Reactions =
+        [
+            ("heart", "Нравится", "❤️"),
+            ("hug",   "Поддерживаю", "🤗"),
+            ("smile", "Радуюсь", "😊"),
+            ("wow",   "Ух ты", "😮"),
+            ("up",    "Держись", "💪"),
+            ("cry",   "Грустно", "😭"),
+        ];
+
+        // Ключ для реакций (если пользователь залогинен — u:ID, если гость — a:cookie)
         private async Task<string> GetReactKeyAsync()
         {
             if (User.Identity?.IsAuthenticated ?? false)
@@ -43,6 +42,7 @@ namespace FeelShare.Web.Controllers
                 var u = await _um.GetUserAsync(User);
                 return $"u:{u!.Id}";
             }
+
             if (!Request.Cookies.TryGetValue("fs_like", out var anon) || string.IsNullOrEmpty(anon))
             {
                 anon = Guid.NewGuid().ToString("N");
@@ -54,68 +54,220 @@ namespace FeelShare.Web.Controllers
                     SameSite = SameSiteMode.Lax
                 });
             }
+
             return $"a:{anon}";
         }
 
-        [HttpGet("/")]
-        [AllowAnonymous]//доступ к странице без входа
-        public async Task<IActionResult> Index(int? emotionId, int page = 1)
+        // Ключ для жалоб 
+        private async Task<string> GetReportKeyAsync()
         {
-            const int pageSize = 10; // постранично по 10 историй
+            if (User.Identity?.IsAuthenticated ?? false)
+                return $"u:{_um.GetUserId(User)}";
 
-            // 3.1. Эмоции для карточек
+            if (!Request.Cookies.TryGetValue("fs_report", out var anon) || string.IsNullOrEmpty(anon))
+            {
+                anon = Guid.NewGuid().ToString("N");
+                Response.Cookies.Append("fs_report", anon, new CookieOptions
+                {
+                    Expires = DateTimeOffset.UtcNow.AddYears(1),
+                    HttpOnly = true,
+                    IsEssential = true,
+                    SameSite = SameSiteMode.Lax
+                });
+            }
+
+            return $"a:{anon}";
+        }
+
+        // Нормализация текста для авто-модерации (чтобы ловить обходы “нннарк0т@”)
+        private static string NormalizeForModeration(string text)
+        {
+            text = (text ?? string.Empty).ToLowerInvariant();
+
+            // 1) Убираю растяжения символов: “нннаркота” -> “наркота”
+            text = Regex.Replace(text, @"(.)\1{2,}", "$1");
+
+            // 2) Подмена похожих символов (цифры/знаки → буквы)
+            var map = new Dictionary<char, char>
+            {
+                ['0'] = 'о',
+                ['@'] = 'а',
+                ['3'] = 'з',
+                ['1'] = 'и',
+                ['!'] = 'и',
+                ['5'] = 'с',
+            };
+
+            var sb = new StringBuilder(text.Length);
+            foreach (var ch in text)
+                sb.Append(map.TryGetValue(ch, out var repl) ? repl : ch);
+
+            text = sb.ToString();
+
+            // 3) Убираю всё не буквы/цифры
+            text = Regex.Replace(text, @"[\W_]+", "");
+
+            return text;
+        }
+
+        // авто-оценка риска для истории: Published / Pending / Rejected
+        private static (ModerationStatus status, string? note) DetectRisk(string originalText)
+        {
+            var norm = NormalizeForModeration(originalText);
+
+            // Жёстко запрещённое сразу Rejected
+            string[] hardRejectRoots =
+            {
+                "педоф", "детскпорн", "cp", "childporn",
+                "террор", "взорв", "бомб", "расчлен","убил",
+                "инструкц", "каксделатьбомб"
+            };
+
+            if (hardRejectRoots.Any(r => norm.Contains(r)))
+                return (ModerationStatus.Rejected, "Авто: жёсткий запрет (ключевые корни)");
+
+            // Подозрительное Pending 
+            string[] pendingRoots =
+            {
+                "убий", "убивать", "нож", "зарез",
+                "суицид", "самоуб", "повеш", "порезалсеб",
+                "наркот", "нарк", "кокс", "героин",
+                "изнасил", "насил", "похит", "шантаж",
+                "оруж", "пистолет", "автомат"
+            };
+
+            if (pendingRoots.Any(r => norm.Contains(r)))
+                return (ModerationStatus.Pending, "Авто: повышенный риск (ключевые корни)");
+
+            return (ModerationStatus.Published, null);
+        }
+
+        // Главная страница: лента историй + фильтры + пагинация курсором 
+        [HttpGet("/")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Index(
+            int? emotionId,
+            string? period,
+            int? weekOffset,
+            string? afterCreated,
+            int? afterId)
+        {
+            const int PageSize = 10;
+
+            // Карточки эмоций сверху
             var moods = await _db.Emotions
                 .AsNoTracking()
                 .OrderBy(e => e.Id)
                 .ToListAsync();
 
-            // 3.2. Параметры контекста пользователя (реакции, владелец и т.п.)
-            var reactKey = await GetReactKeyAsync();       // у кого-то userId, у гостя — cookie-идентификатор
-            var currentUserId = _um.GetUserId(User);       // Id текущего пользователя, если вошёл
+            // Контекст текущего пользователя
+            var reactKey = await GetReactKeyAsync();
+            var currentUserId = _um.GetUserId(User);
             var isAuth = User.Identity?.IsAuthenticated ?? false;
 
-            // 3.3. Базовый запрос по историям
+            // Базовый запрос: только опубликованные и прошедшие модерацию
             IQueryable<PublicStory> q = _db.PublicStories
                 .AsNoTracking()
-                .Where(s => s.IsPublished);                // только опубликованные
+                .Where(s => s.IsPublished && s.ModerationStatus == ModerationStatus.Published);
 
+            // Фильтр по эмоции
             if (emotionId.HasValue)
-                q = q.Where(s => s.EmotionId == emotionId.Value); // фильтр по эмоции (по кнопкам “чипсам”)
+                q = q.Where(s => s.EmotionId == emotionId.Value);
 
-            var total = await q.CountAsync();              // всего записей для пагинации
+            // Фильтр по периоду
+            var nowUtc = DateTime.UtcNow;
 
-            // 3.4. Выбираем только нужные поля + агрегаты (проекция)
-            var items = await q
-                .OrderByDescending(s => s.Id)              // новые выше
-                .Skip((page - 1) * pageSize)               // страница N
-                .Take(pageSize)
+            if (!string.IsNullOrEmpty(period))
+            {
+                if (period == "today")
+                {
+                    var fromTodayUtc = nowUtc.Date;
+                    q = q.Where(s => s.CreatedAtUtc >= fromTodayUtc);
+                }
+                else if (period == "7d")
+                {
+                    var from7dUtc = nowUtc.AddDays(-7);
+                    q = q.Where(s => s.CreatedAtUtc >= from7dUtc);
+                }
+                else if (period == "30d")
+                {
+                    var from30dUtc = nowUtc.AddDays(-30);
+                    q = q.Where(s => s.CreatedAtUtc >= from30dUtc);
+                }
+                else if (period == "year")
+                {
+                    var fromUtc = nowUtc.AddYears(-1);
+                    q = q.Where(s => s.CreatedAtUtc >= fromUtc);
+                }
+                else if (period == "week")
+                {
+                    int w = Math.Max(0, weekOffset ?? 0);
+                    var (fromUtc, toUtc) = GetIsoWeekRangeUtc(nowUtc, w);
+                    q = q.Where(s => s.CreatedAtUtc >= fromUtc && s.CreatedAtUtc < toUtc);
+                }
+            }
+
+            // Сортировка ленты
+            q = q.OrderByDescending(s => s.CreatedAtUtc)
+                 .ThenByDescending(s => s.Id);
+
+            // Cursor pagination
+            if (DateTime.TryParse(afterCreated, null, System.Globalization.DateTimeStyles.RoundtripKind, out var afterCreatedUtc)
+                && afterId.HasValue)
+            {
+                q = q.Where(s =>
+                    (s.CreatedAtUtc < afterCreatedUtc) ||
+                    (s.CreatedAtUtc == afterCreatedUtc && s.Id < afterId.Value));
+            }
+
+            
+            var pageKeys = await q
+                .Select(s => new { s.Id, s.CreatedAtUtc })
+                .Take(PageSize + 1)
+                .ToListAsync();
+
+            bool hasMore = pageKeys.Count > PageSize;
+            if (hasMore) pageKeys.RemoveAt(PageSize);
+
+            // Подготовка следующего курсора
+            string? nextAfterCreated = null;
+            int? nextAfterId = null;
+            if (hasMore && pageKeys.Count > 0)
+            {
+                var last = pageKeys[^1];
+                nextAfterCreated = last.CreatedAtUtc.ToString("o");
+                nextAfterId = last.Id;
+            }
+
+            var pageIds = pageKeys.Select(x => x.Id).ToList();
+
+            // 2) Теперь беру детали по этим Id (реакции, комменты, эмодзи эмоции)
+            var items = await _db.PublicStories
+                .AsNoTracking()
+                .Where(s => pageIds.Contains(s.Id))
                 .Select(s => new
                 {
-                    Id = s.Id,
-                    EmotionId = s.EmotionId,
+                    s.Id,
+                    s.EmotionId,
                     EmotionName = s.Emotion.Name,
                     EmotionIcon = s.Emotion.Icon,
-                    Content = s.Content,
-                    CreatedAtUtc = s.CreatedAtUtc,
+                    s.Content,
+                    s.CreatedAtUtc,
 
-                    // сгруппированные счётчики реакций
                     ReactionGroups = _db.StoryReactions
                         .Where(r => r.StoryId == s.Id)
                         .GroupBy(r => r.Reaction)
                         .Select(g => new { Key = g.Key, Count = g.Count() })
                         .ToList(),
 
-                    // какие реакции поставил текущий пользователь/гость
                     MyReacts = _db.StoryReactions
                         .Where(r => r.StoryId == s.Id && r.ReactKey == reactKey)
                         .Select(r => r.Reaction)
                         .ToList(),
 
-                    // число комментариев
                     CommentsCount = _db.StoryComments
                         .Count(c => c.StoryId == s.Id && !c.IsDeleted),
 
-                    // 2 последних комментария для предпросмотра
                     Latest = _db.StoryComments
                         .Where(c => c.StoryId == s.Id && !c.IsDeleted)
                         .OrderByDescending(c => c.CreatedAtUtc)
@@ -132,7 +284,11 @@ namespace FeelShare.Web.Controllers
                 })
                 .ToListAsync();
 
-            // 3.5. Маппинг в ViewModel, удобную для Razor
+            // Возвращаю порядок как в pageIds (иначе SQL IN может вернуть в другом порядке)
+            var order = pageIds.Select((id, idx) => new { id, idx }).ToDictionary(x => x.id, x => x.idx);
+            items = items.OrderBy(x => order[x.Id]).ToList();
+
+            
             var stories = items.Select(x => new StoryListItemVM
             {
                 Id = x.Id,
@@ -149,41 +305,47 @@ namespace FeelShare.Web.Controllers
 
             var vm = new HomeIndexVM
             {
-                Moods = moods,                  // карточки эмоций
-                Stories = stories,              // лента
-                SelectedEmotionId = emotionId,  // какой фильтр активен
-                Page = page,
-                HasMore = page * pageSize < total
+                Moods = moods,
+                Stories = stories,
+                SelectedEmotionId = emotionId,
+                HasMore = hasMore,
+                NextAfterCreated = nextAfterCreated,
+                NextAfterId = nextAfterId,
+                Period = period,
+                WeekOffset = weekOffset
             };
 
             return View(vm);
         }
 
-        [Authorize] 
+        // Реакции 
+        [Authorize]
         [HttpPost("/stories/{id:int}/react/{reaction}", Name = "StoryReactToggle")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> React(int id, string reaction)
         {
+            // Разрешаю только те реакции, что описаны в массиве Reactions
             var allowed = Reactions.Select(r => r.key).ToHashSet();
             if (!allowed.Contains(reaction)) return BadRequest("Unknown reaction");
 
-            var reactKey = $"u:{_um.GetUserId(User)}"; // раз логин обязателен — ключ всегда user
+            // Тут реакция доступна только авторизованным
+            var reactKey = $"u:{_um.GetUserId(User)}";
 
             var existing = await _db.StoryReactions
                 .FirstOrDefaultAsync(x => x.StoryId == id && x.Reaction == reaction && x.ReactKey == reactKey);
 
             if (existing is null)
-            {   // Добавляем реакцию
+            {
                 _db.StoryReactions.Add(new StoryReaction { StoryId = id, Reaction = reaction, ReactKey = reactKey });
                 try { await _db.SaveChangesAsync(); } catch { }
             }
             else
-            {// Убираем реакцию (повторное нажатие снимает)
+            {
                 _db.StoryReactions.Remove(existing);
                 await _db.SaveChangesAsync();
             }
 
-            // Если это AJAX — вернём свежие данные
+            // Если запрос AJAX — отдаю JSON с обновлёнными счётчиками
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
                 var counts = await _db.StoryReactions
@@ -200,6 +362,7 @@ namespace FeelShare.Web.Controllers
                 return Json(new { ok = true, counts, my });
             }
 
+            // Иначе просто возвращаю обратно на страницу
             var back = Request.Headers["Referer"].ToString();
             if (!string.IsNullOrEmpty(back)) return Redirect(back);
             return RedirectToAction(nameof(Index));
@@ -211,34 +374,127 @@ namespace FeelShare.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateStory(int emotionId, string content, string? returnUrl)
         {
-            if (string.IsNullOrWhiteSpace(content))
+            var trimmed = (content ?? string.Empty).Trim();
+
+            if (string.IsNullOrWhiteSpace(trimmed))
             {
                 TempData["Error"] = "Напишите историю.";
-                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                    return Redirect(returnUrl);
-                return RedirectToAction(nameof(Index), new { emotionId });
+                return RedirectAfterCreate(emotionId, returnUrl);
             }
+
+            // Авто-оценка риска
+            var (status, note) = DetectRisk(trimmed);
 
             var user = await _um.GetUserAsync(User);
 
-            _db.PublicStories.Add(new PublicStory
+            var story = new PublicStory
             {
                 EmotionId = emotionId,
                 UserId = user!.Id,
-                Content = content.Trim(),
+                Content = trimmed,
                 CreatedAtUtc = DateTime.UtcNow,
-                IsPublished = true
-            });
 
+                ModerationStatus = status,
+                ModerationNote = note,
+
+                // В ленту попадает только Published
+                IsPublished = (status == ModerationStatus.Published)
+            };
+
+            _db.PublicStories.Add(story);
             await _db.SaveChangesAsync();
-            TempData["Success"] = "История опубликована анонимно.";
 
+            // Сообщение пользователю
+            if (status == ModerationStatus.Published)
+                TempData["Success"] = "История опубликована анонимно.";
+            else if (status == ModerationStatus.Pending)
+                TempData["Success"] = "Спасибо! История отправлена на проверку и появится после модерации.";
+            else
+                TempData["Error"] = "История нарушает правила сообщества и не может быть опубликована.";
+
+            return RedirectAfterCreate(emotionId, returnUrl);
+        }
+
+     
+        private IActionResult RedirectAfterCreate(int emotionId, string? returnUrl)
+        {
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
 
             return RedirectToAction(nameof(Index), new { emotionId });
         }
-        // УДАЛИТЬ СВОЮ ИСТОРИЮ
+
+        //  Жалоба на историю 
+        [HttpPost("/stories/{id:int}/report", Name = "StoryReport")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Report(int id, string? reason, string? returnUrl)
+        {
+            var story = await _db.PublicStories.FirstOrDefaultAsync(s => s.Id == id);
+            if (story == null) return NotFound();
+
+            var reportKey = await GetReportKeyAsync();
+
+            // Если уже жаловался  не даю накрутить
+            bool exists = await _db.StoryReports.AnyAsync(r => r.StoryId == id && r.ReportKey == reportKey);
+            if (exists)
+            {
+                TempData["Error"] = "Вы уже отправляли жалобу на эту историю.";
+                return RedirectAfterCreate(story.EmotionId, returnUrl);
+            }
+
+            // Нормализую reason
+            var r = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
+            if (r != null && r.Length > 40) r = r.Substring(0, 40);
+
+            _db.StoryReports.Add(new StoryReport
+            {
+                StoryId = id,
+                ReportKey = reportKey,
+                Reason = r,
+                CreatedAtUtc = DateTime.UtcNow
+            });
+
+            story.ReportsCount += 1;
+
+            // Авто-скрытие по порогу жалоб
+            const int AutoHideThreshold = 3;
+            if (story.ReportsCount >= AutoHideThreshold && story.ModerationStatus == ModerationStatus.Published)
+            {
+                story.ModerationStatus = ModerationStatus.Pending;
+                story.ModerationNote = $"Авто: {story.ReportsCount} жалоб";
+            }
+
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                TempData["Error"] = "Вы уже отправляли жалобу на эту историю.";
+                return RedirectAfterCreate(story.EmotionId, returnUrl);
+            }
+
+            TempData["Success"] = "Жалоба отправлена. Спасибо!";
+            return RedirectAfterCreate(story.EmotionId, returnUrl);
+        }
+
+        //  RedirectAfterCreate (emotionId nullable + referrer)
+        private IActionResult RedirectAfterCreate(int? emotionId, string? returnUrl)
+        {
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                return Redirect(returnUrl);
+
+            var back = Request.Headers["Referer"].ToString();
+            if (!string.IsNullOrEmpty(back))
+                return Redirect(back);
+
+            if (emotionId.HasValue)
+                return RedirectToAction(nameof(Index), new { emotionId = emotionId.Value });
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        //  Удаление своей истории 
         [Authorize]
         [HttpPost("/stories/{id:int}/delete", Name = "StoryDelete")]
         [ValidateAntiForgeryToken]
@@ -251,10 +507,9 @@ namespace FeelShare.Web.Controllers
 
             if (story is null) return NotFound();
 
-            story.IsPublished = false;  // не стираем, а прячем из ленты
+            // Не удаляю из БД, а просто убираю из ленты
+            story.IsPublished = false;
             await _db.SaveChangesAsync();
-
-            
 
             TempData["Success"] = "История удалена.";
 
@@ -266,7 +521,8 @@ namespace FeelShare.Web.Controllers
 
             return RedirectToAction("Index", "Profile");
         }
-        // «Показать ещё» — подгрузка комментариев (AJAX, Partial)
+
+        //  Комментарии: подгрузка
         [HttpGet("/stories/{id:int}/comments", Name = "StoryCommentsChunk")]
         [AllowAnonymous]
         public async Task<IActionResult> CommentsChunk(int id, int skip = 0, int take = 5)
@@ -292,6 +548,7 @@ namespace FeelShare.Web.Controllers
             return PartialView("_CommentsChunk", comments);
         }
 
+        // Создать комментарий
         [Authorize]
         [HttpPost("/stories/{id:int}/comment", Name = "StoryCommentCreate")]
         [ValidateAntiForgeryToken]
@@ -314,12 +571,15 @@ namespace FeelShare.Web.Controllers
                 UserId = user!.Id,
                 Content = content.Trim()
             };
+
             _db.StoryComments.Add(cmt);
             await _db.SaveChangesAsync();
 
+            // Если AJAX — возвращаю частичное представление с новым комментом
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
                 var currentUserId = _um.GetUserId(User);
+
                 var vm = await _db.StoryComments
                     .Where(c => c.Id == cmt.Id)
                     .Select(c => new CommentItemVM
@@ -330,7 +590,7 @@ namespace FeelShare.Web.Controllers
                         CreatedAtUtc = c.CreatedAtUtc,
                         IsOwner = c.UserId == currentUserId
                     })
-                    .ToListAsync(); // _CommentsChunk ожидает List<CommentItemVM>
+                    .ToListAsync();
 
                 return PartialView("_CommentsChunk", vm);
             }
@@ -339,18 +599,20 @@ namespace FeelShare.Web.Controllers
             return Redirect(Request.Headers["Referer"].ToString());
         }
 
-        // Удалить комментарий (только автор)
+        // Удалить комментарий (только свой) 
         [Authorize]
         [HttpPost("/stories/comment/{id:int}/delete", Name = "StoryCommentDelete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteComment(int id)
         {
             var userId = _um.GetUserId(User);
+
             var c = await _db.StoryComments.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
             if (c is null)
             {
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                     return NotFound(new { ok = false, message = "Комментарий не найден" });
+
                 return NotFound();
             }
 
@@ -364,30 +626,55 @@ namespace FeelShare.Web.Controllers
             TempData["Success"] = "Комментарий удалён.";
             return Redirect(Request.Headers["Referer"].ToString());
         }
-     
-        // Страница эмоции (цитаты + форма сохранения в дневник)
-        [HttpGet("/emotion/{slug}")]            // Маршрут с параметром {slug}
-        [AllowAnonymous]                        // Доступен всем (даже без входа)
+
+        // Страница эмоции: цитаты + дневник + панель упражнений
+        [HttpGet("/emotion/{slug}")]
+        [AllowAnonymous]
         public async Task<IActionResult> Emotion(string slug)
         {
+            
+            string panelTagName = "Anxiety";
+            string panelTagRu = "Тревога";
+
+            switch ((slug ?? "").ToLowerInvariant())
+            {
+                case "trevozhno":
+                case "anxiety":
+                    panelTagName = "Anxiety"; panelTagRu = "Тревога"; break;
+
+                case "noch":
+                case "night":
+                    panelTagName = "Night"; panelTagRu = "Ночь"; break;
+
+                case "spokoino":
+                case "calmer":
+                    panelTagName = "Calmer"; panelTagRu = "Спокойнее"; break;
+            }
+
+            ViewBag.PanelTagName = panelTagName;
+            ViewBag.PanelTagRu = panelTagRu;
+
+            // Ищу эмоцию по slug
             var emotion = await _db.Emotions
-                .AsNoTracking()                 // читаем быстрее, без отслеживания
-                .FirstOrDefaultAsync(e => e.Slug == slug); // ищем по slug
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Slug == slug);
 
-            if (emotion == null) return NotFound(); // 404, если нет такой эмоции
+            if (emotion == null) return NotFound();
 
+            // Беру 3 случайные активные цитаты этой эмоции
             var quotes = await _db.Quotes
-                .Where(q => q.EmotionId == emotion.Id && q.IsActive) // только активные цитаты этой эмоции
-                .OrderBy(q => Guid.NewGuid())     //  “случайность” 
-                .Take(3)                          // показываем до трёх штук
+                .Where(q => q.EmotionId == emotion.Id && q.IsActive)
+                .OrderBy(q => Guid.NewGuid())
+                .Take(3)
                 .AsNoTracking()
                 .ToListAsync();
 
-            ViewBag.RandomQuotes = quotes;        // передаём цитаты во View через ViewBag
-            return View("Emotion", emotion);      // модель представления 
+            ViewBag.RandomQuotes = quotes;
+
+            return View("Emotion", emotion);
         }
 
-        // Сохранить запись в личный дневник
+        // Сохранить запись в личный дневник 
         [HttpPost("/emotion/save")]
         [ValidateAntiForgeryToken]
         [Authorize]
@@ -412,6 +699,16 @@ namespace FeelShare.Web.Controllers
             await _db.SaveChangesAsync();
             TempData["Success"] = "Сохранено в ваш дневник.";
             return RedirectToAction("Me", "Profile");
+        }
+
+        // ISO-неделя для фильтра week
+        private static (DateTime fromUtc, DateTime toUtc) GetIsoWeekRangeUtc(DateTime nowUtc, int offset)
+        {
+            int delta = ((int)nowUtc.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+            var mondayThisWeek = nowUtc.Date.AddDays(-delta);
+            var from = mondayThisWeek.AddDays(-7 * Math.Max(0, offset));
+            var to = from.AddDays(7);
+            return (from, to);
         }
     }
 }

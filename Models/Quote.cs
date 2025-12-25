@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation; // ← добавь
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation; 
 
 namespace FeelShare.Web.Models
 {
@@ -10,10 +10,10 @@ namespace FeelShare.Web.Models
         [Range(1, int.MaxValue, ErrorMessage = "Выберите эмоцию")]
         public int EmotionId { get; set; }
 
-        [ValidateNever]                 // не валидировать навигацию
+        [ValidateNever]                
         public Emotion? Emotion { get; set; }  
 
-        [Required, StringLength(1024, ErrorMessage = "Макс. 1024 символа")]
+        [Required]
         public string Text { get; set; } = null!;
 
         [StringLength(128, ErrorMessage = "Макс. 128 символов")]
